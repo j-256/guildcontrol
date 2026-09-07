@@ -13,7 +13,8 @@ import {
 const SCRIPT_DIRECTORY = dirname(fileURLToPath(import.meta.url))
 const COMPARISON_FILE = resolve(SCRIPT_DIRECTORY, "..", "..", "docs", "comparison.md")
 const CONCURRENCY = 4
-const REQUEST_TIMEOUT_MS = 20_000
+const EXTERNAL_LINK_REQUEST_TIMEOUT_MS = 20_000
+const REGISTRY_REQUEST_TIMEOUT_MS = 60_000
 const RETRY_DELAYS_MS = Object.freeze([0, 750, 2_500])
 const RETRYABLE_STATUS = new Set([408, 425, 429, 500, 502, 503, 504])
 const USER_AGENT = "guildcontrol-documentation-link-verifier/1.0"
@@ -30,7 +31,7 @@ async function fetchStatus(url) {
       "user-agent": USER_AGENT,
     },
     redirect: "follow",
-    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    signal: AbortSignal.timeout(EXTERNAL_LINK_REQUEST_TIMEOUT_MS),
   })
   const status = response.status
   await response.body?.cancel()
@@ -48,7 +49,7 @@ async function fetchRegistryResponse(url) {
           "user-agent": USER_AGENT,
         },
         redirect: "follow",
-        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+        signal: AbortSignal.timeout(REGISTRY_REQUEST_TIMEOUT_MS),
       })
       if (response.ok) return await response.json()
       const status = response.status

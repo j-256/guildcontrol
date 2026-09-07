@@ -5716,7 +5716,7 @@ test("CLI lists release-exact migration sources and renders complete plans with 
     "hypark@0.1.1",
     "jaimen-bell@0.1.1",
     "oratorian@1.1.4",
-    "pasympa@2.1.1",
+    "pasympa@2.2.0",
     "targeted-reader@1.0.0",
   ])
   assert.equal(plan.source.id, "hypark@0.1.1")

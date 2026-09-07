@@ -2,6 +2,14 @@ import assert from "node:assert/strict"
 
 export const MCP_REGISTRY_ORIGIN = "https://registry.modelcontextprotocol.io"
 export const SELF_REGISTRY_NAME = "app.lasers.guildcontrol/discord"
+export const SUPERSEDED_SELF_REGISTRY_NAME = [
+  "io.github.j-256",
+  ["discord", "mcp"].join("-"),
+].join("/")
+export const SELF_REGISTRY_NAMES = Object.freeze([
+  SELF_REGISTRY_NAME,
+  SUPERSEDED_SELF_REGISTRY_NAME,
+])
 
 const LATEST_METADATA_KEY = "io.modelcontextprotocol.registry/official"
 const MAXIMUM_PAGE_RESULTS = 100
@@ -164,15 +172,17 @@ export async function loadCurrentRegistryPages(fetchPage) {
   throw new Error("MCP Registry latest search exceeded its page bound")
 }
 
-export function collectCurrentRegistryCompetitors(pages, selfName = SELF_REGISTRY_NAME) {
+export function collectCurrentRegistryCompetitors(pages) {
   assert.ok(Array.isArray(pages) && pages.length > 0, "MCP Registry search returned no pages")
   assert.ok(pages.length <= MAXIMUM_PAGES, "MCP Registry search exceeded its page bound")
-  exactText(
-    selfName,
-    REGISTRY_SERVER_NAME,
-    MAXIMUM_SERVER_NAME_CHARACTERS,
-    "Self MCP Registry server name is invalid",
-  )
+  for (const selfName of SELF_REGISTRY_NAMES) {
+    exactText(
+      selfName,
+      REGISTRY_SERVER_NAME,
+      MAXIMUM_SERVER_NAME_CHARACTERS,
+      "Self MCP Registry server name is invalid",
+    )
+  }
   const byName = new Map()
   for (const pageValue of pages) {
     const page = strictRecord(pageValue, "Projected MCP Registry page is invalid")
@@ -195,8 +205,8 @@ export function collectCurrentRegistryCompetitors(pages, selfName = SELF_REGISTR
       byName.set(name, Object.freeze({ name, version }))
     }
   }
-  assert.ok(byName.has(selfName), `MCP Registry latest search omitted ${selfName}`)
-  byName.delete(selfName)
+  assert.ok(byName.has(SELF_REGISTRY_NAME), `MCP Registry latest search omitted ${SELF_REGISTRY_NAME}`)
+  for (const selfName of SELF_REGISTRY_NAMES) byName.delete(selfName)
   assert.ok(byName.size > 0, "MCP Registry latest search returned no Discord competitors")
   return Object.freeze([...byName.values()].sort((left, right) => left.name.localeCompare(right.name)))
 }

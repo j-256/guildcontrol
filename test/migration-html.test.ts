@@ -73,7 +73,7 @@ test("migration HTML renders the complete plan as one deterministic offline guid
 test("migration HTML exporter is exclusive, private, deterministic, and path-free", async (context) => {
   const directory = await mkdtemp(join(tmpdir(), "guildcontrol-migration-html-test-"))
   context.after(() => rm(directory, { force: true, recursive: true }))
-  const plan = await migrationPlan("pasympa@2.1.1")
+  const plan = await migrationPlan("pasympa@2.2.0")
   const first = join(directory, "first.html")
   const second = join(directory, "second.html")
   const existing = join(directory, "existing.html")
