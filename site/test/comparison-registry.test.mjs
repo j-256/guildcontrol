@@ -11,6 +11,7 @@ import {
   registrySearchUrl,
   registryVersionUrl,
   SELF_REGISTRY_NAME,
+  SUPERSEDED_SELF_REGISTRY_NAME,
 } from "../scripts/comparison-registry.mjs"
 
 const COMPETITOR_ONE = "io.github.example/discord-one"
@@ -92,7 +93,7 @@ test("Registry URLs bind the complete latest Discord query and exact version rec
   )
 })
 
-test("Registry pages project strict latest records and competitors exclude this project", () => {
+test("Registry pages project strict latest records and competitors exclude every project identity", () => {
   assert.equal(projectRegistryPage({
     metadata: { count: 1 },
     servers: [registryEntry(SELF_REGISTRY_NAME, "0.1.1")],
@@ -101,6 +102,7 @@ test("Registry pages project strict latest records and competitors exclude this 
     projectRegistryPage(registryPage([
       registryEntry(COMPETITOR_ONE, VERSION_ONE),
       registryEntry(SELF_REGISTRY_NAME, "0.1.1"),
+      registryEntry(SUPERSEDED_SELF_REGISTRY_NAME, "0.1.1"),
     ], "page-two")),
     projectRegistryPage(registryPage([
       registryEntry(COMPETITOR_TWO, VERSION_TWO),

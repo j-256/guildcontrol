@@ -150,7 +150,7 @@ test("migration source selection is version-exact and rejects aliases, paths, an
   assert.throws(() => normalizeMigrationSourceId("cappyeo"), /must be one of/u)
   assert.throws(() => normalizeMigrationSourceId("cappyeo@latest"), /must be one of/u)
   assert.throws(() => normalizeMigrationSourceId("./source-checkout"), /must be one of/u)
-  assert.throws(() => normalizeMigrationSourceId("pasympa@2.1.0"), /must be one of/u)
+  assert.throws(() => normalizeMigrationSourceId("pasympa@2.1.1"), /must be one of/u)
 })
 
 test("migration plan verification rejects any post-plan mutation", async () => {

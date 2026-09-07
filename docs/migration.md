@@ -23,7 +23,7 @@ The catalog contains these immutable source IDs:
 | `hypark@0.1.1` | Public version tag resolved to a commit-pinned source snapshot | `channel-reader` |
 | `jaimen-bell@0.1.1` | Exact PyPI release and matching commit-pinned public source without a source tag | `server-observer` |
 | `oratorian@1.1.4` | Public version tag resolved to a commit-pinned source snapshot | `channel-reader` |
-| `pasympa@2.1.1` | Public version tag resolved to a commit-pinned source snapshot | `channel-reader` |
+| `pasympa@2.2.0` | Public version tag resolved to a commit-pinned source snapshot | `channel-reader` |
 | `targeted-reader@1.0.0` | Version-matching commit-pinned public source without a source tag or installable Registry package | `channel-reader` |
 
 Each entry includes its Registry identity, commit-pinned evidence URL, audit fidelity, complete source-tool inventory digest, mapping summary, limitations, and manifest digest. Untagged evidence stays visibly weaker; the planner does not turn a version-matching public source snapshot into a tagged-source claim.
