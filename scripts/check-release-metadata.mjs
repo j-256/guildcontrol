@@ -102,7 +102,7 @@ const EXPECTED_DEPENDENCIES = {
   zod: "4.4.3",
 }
 const EXPECTED_DEV_DEPENDENCIES = {
-  "@types/node": "26.3.0",
+  "@types/node": "26.4.0",
   ajv: "8.20.0",
   "ajv-formats": "3.0.1",
   esbuild: "0.28.2",
@@ -305,8 +305,8 @@ const EXPECTED_ACTION_PINS = new Map([
   ["docker/login-action", "dbcb813823bdd20940b903addbd779551569679f"],
   ["docker/setup-buildx-action", "37fe631027851001ddb9b187196cc803df7f5f0e"],
   ["docker/setup-qemu-action", "96fe6ef7f33517b61c61be40b68a1882f3264fb8"],
-  ["github/codeql-action/analyze", "db488ddef3bf6cb639b32c2e9a7c0a7ea8271d28"],
-  ["github/codeql-action/init", "db488ddef3bf6cb639b32c2e9a7c0a7ea8271d28"],
+  ["github/codeql-action/analyze", "cdf488f595d80d6e07e03d4674febd5ab45fa938"],
+  ["github/codeql-action/init", "cdf488f595d80d6e07e03d4674febd5ab45fa938"],
 ])
 
 function assertEqual(actual, expected, message) {
