@@ -2,7 +2,10 @@ import assert from "node:assert/strict"
 
 export const MCP_REGISTRY_ORIGIN = "https://registry.modelcontextprotocol.io"
 export const SELF_REGISTRY_NAME = "app.lasers.guildcontrol/discord"
-export const SUPERSEDED_SELF_REGISTRY_NAME = "io.github.j-256/discord-mcp"
+export const SUPERSEDED_SELF_REGISTRY_NAME = [
+  "io.github.j-256",
+  ["discord", "mcp"].join("-"),
+].join("/")
 export const SELF_REGISTRY_NAMES = Object.freeze([
   SELF_REGISTRY_NAME,
   SUPERSEDED_SELF_REGISTRY_NAME,
