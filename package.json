@@ -88,7 +88,7 @@
     "@opentelemetry/resources": "2.10.0",
     "@opentelemetry/sdk-metrics": "2.10.0",
     "@opentelemetry/sdk-trace": "2.10.0",
-    "zod": "4.4.3"
+    "zod": "4.5.4"
   },
   "devDependencies": {
     "@types/node": "26.4.0",
