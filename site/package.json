@@ -15,7 +15,7 @@
     "check": "npm run generate && astro check",
     "deploy": "wrangler deploy",
     "deploy:dry-run": "wrangler deploy --dry-run --outdir .wrangler/dry-run",
-    "deps:locked": "npm ci --ignore-scripts && npm rebuild esbuild@0.28.2 esbuild@0.28.1 workerd@1.20260825.1 --ignore-scripts=false",
+    "deps:locked": "npm ci --ignore-scripts && npm rebuild esbuild@0.28.2 esbuild@0.28.1 workerd@1.20260910.1 --ignore-scripts=false",
     "dev": "npm run generate && astro dev",
     "generate": "node scripts/generate.mjs",
     "preview": "astro preview",
@@ -40,6 +40,6 @@
     "fsevents@2.3.2": false,
     "fsevents@2.3.3": false,
     "esbuild@0.28.1": true,
-    "workerd@1.20260825.1": true
+    "workerd@1.20260910.1": true
   }
 }
