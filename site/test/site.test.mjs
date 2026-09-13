@@ -118,7 +118,7 @@ test("documentation dependencies and install scripts are exact", async () => {
     "esbuild@0.28.2",
     "fsevents@2.3.2",
     "vite/node_modules/fsevents@2.3.3",
-    "workerd@1.20260825.1",
+    "workerd@1.20260910.1",
     "wrangler/node_modules/esbuild@0.28.1",
     "wrangler/node_modules/fsevents@2.3.3",
   ])
@@ -127,7 +127,7 @@ test("documentation dependencies and install scripts are exact", async () => {
     "fsevents@2.3.2": false,
     "fsevents@2.3.3": false,
     "esbuild@0.28.1": true,
-    "workerd@1.20260825.1": true,
+    "workerd@1.20260910.1": true,
   })
   const rootPackage = JSON.parse(await readFile(join(REPOSITORY_ROOT, "package.json"), "utf8"))
   assert.ok(!rootPackage.files.includes("site"))

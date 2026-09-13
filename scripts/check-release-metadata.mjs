@@ -118,7 +118,7 @@ const EXPECTED_SITE_DEV_DEPENDENCIES = {
   astro: "7.2.9",
   playwright: "1.62.1",
   typescript: "6.0.3",
-  wrangler: "4.126.0",
+  wrangler: "4.131.0",
 }
 const EXPECTED_SITE_SCRIPTS = {
   "browser:install": "playwright install chromium",
@@ -127,7 +127,7 @@ const EXPECTED_SITE_SCRIPTS = {
   check: "npm run generate && astro check",
   deploy: "wrangler deploy",
   "deploy:dry-run": "wrangler deploy --dry-run --outdir .wrangler/dry-run",
-  "deps:locked": "npm ci --ignore-scripts && npm rebuild esbuild@0.28.2 esbuild@0.28.1 workerd@1.20260825.1 --ignore-scripts=false",
+  "deps:locked": "npm ci --ignore-scripts && npm rebuild esbuild@0.28.2 esbuild@0.28.1 workerd@1.20260910.1 --ignore-scripts=false",
   dev: "npm run generate && astro dev",
   generate: "node scripts/generate.mjs",
   preview: "astro preview",
@@ -139,7 +139,7 @@ const EXPECTED_SITE_SCRIPTS = {
 }
 const EXPECTED_SITE_PRERELEASE_DEPENDENCIES = {
   "node_modules/get-tsconfig": "5.0.0-beta.4",
-  "node_modules/miniflare": "5.20260825.0-alpha",
+  "node_modules/miniflare": "5.20260910.0-alpha",
   "node_modules/unenv": "2.0.0-rc.24",
   "node_modules/youch": "4.1.0-beta.10",
 }
@@ -304,7 +304,7 @@ const EXPECTED_ACTION_PINS = new Map([
   ["docker/build-push-action", "53b7df96c91f9c12dcc8a07bcb9ccacbed38856a"],
   ["docker/login-action", "dbcb813823bdd20940b903addbd779551569679f"],
   ["docker/setup-buildx-action", "37fe631027851001ddb9b187196cc803df7f5f0e"],
-  ["docker/setup-qemu-action", "96fe6ef7f33517b61c61be40b68a1882f3264fb8"],
+  ["docker/setup-qemu-action", "1f40c72289eff860ee54a304f1438e3cff362e0a"],
   ["github/codeql-action/analyze", "cdf488f595d80d6e07e03d4674febd5ab45fa938"],
   ["github/codeql-action/init", "cdf488f595d80d6e07e03d4674febd5ab45fa938"],
 ])
@@ -456,7 +456,7 @@ async function checkDocumentationPortal() {
     "fsevents@2.3.2": false,
     "fsevents@2.3.3": false,
     "esbuild@0.28.1": true,
-    "workerd@1.20260825.1": true,
+    "workerd@1.20260910.1": true,
   }, "documentation install-script allowlist changed")
   assertPinnedDependencies(packageJson)
 
@@ -480,7 +480,7 @@ async function checkDocumentationPortal() {
       "esbuild@0.28.2",
       "fsevents@2.3.2",
       "vite/node_modules/fsevents@2.3.3",
-      "workerd@1.20260825.1",
+      "workerd@1.20260910.1",
       "wrangler/node_modules/esbuild@0.28.1",
       "wrangler/node_modules/fsevents@2.3.3",
     ],
