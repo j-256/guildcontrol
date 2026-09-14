@@ -714,6 +714,7 @@ export interface CliDependencies {
   ): Promise<WriteCoordinationResolution>
   restoreProfile(name: string, options: ProfileLocationOptions): Promise<TrashedProfile>
   serve(options: {
+    exitOnShutdown: boolean
     config: ConnectorConfig
     environment: NodeJS.ProcessEnv
     stderr: Pick<NodeJS.WriteStream, "write">
@@ -5051,6 +5052,7 @@ export async function runCli(options: CliOptions = {}): Promise<number> {
       case "serve":
         const runtime = await runtimeSelection(parsed, environment, dependencies)
         dependencies.serve({
+          exitOnShutdown: true,
           config: runtime.config,
           environment: runtime.environment,
           stderr,

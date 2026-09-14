@@ -367,6 +367,7 @@ function verificationEnvironment(homeDirectory) {
 
 const INSTALLED_SMOKE = `
 import assert from "node:assert/strict"
+import { once } from "node:events"
 import { Client } from "@modelcontextprotocol/client"
 import { getDefaultEnvironment, StdioClientTransport } from "@modelcontextprotocol/client/stdio"
 import * as connector from "guildctl"
@@ -386,6 +387,17 @@ const EXPECTED_MCP_TOOL_PROGRESS = [
   { message: "Discord request round finished", progress: 1, total: 1 },
 ]
 const MCP_PROGRESS_NOTIFICATION_METHOD = "notifications/progress"
+
+async function assertCleanStdioEof(transport) {
+  // The pinned SDK exposes its child internally; closing the client first can mask a server hang
+  const child = transport._process
+  assert.ok(child?.stdin)
+  const closed = once(child, "close", { signal: AbortSignal.timeout(7_000) })
+  child.stdin.end()
+  const [code, signal] = await closed
+  assert.equal(signal, null)
+  assert.equal(code, 0)
+}
 
 function collectWireMcpProgress(updates) {
   return (message) => {
@@ -569,6 +581,7 @@ transport.onmessage = collectWireMcpProgress(wireProgress)
 const client = new Client({ name: "installed-package-verifier", version: "1.0.0" }, { capabilities: {} })
 try {
   await client.connect(transport)
+  assert.equal(client.getProtocolEra(), "legacy")
   assert.deepEqual(client.getServerVersion(), expectedServerIdentity)
   assertOperationalInstructions(client)
   const [initialTools, resources, templates, prompts] = await Promise.all([
@@ -634,6 +647,7 @@ try {
   const safety = await client.readResource({ uri: "${STATIC_RESOURCE_URI}" })
   assert.equal(safety.contents.length, 1)
   assert.match(safety.contents[0].text, /review-first workflows/)
+  await assertCleanStdioEof(transport)
 } finally {
   await client.close().catch(() => undefined)
 }
@@ -670,6 +684,7 @@ try {
   assertInstalledMcpProgress(progress, modernWireProgress)
   assert.deepEqual(modernClient.getServerCapabilities().completions, {})
   assert.deepEqual(completion.completion.values, [GUILD_ID])
+  await assertCleanStdioEof(modernTransport)
 } finally {
   await modernClient.close().catch(() => undefined)
 }
