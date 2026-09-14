@@ -23,7 +23,8 @@
     "test": "node --test test/*.test.mjs",
     "test:browser": "node scripts/browser-test.mjs",
     "test:evidence-links": "node scripts/evidence-link-test.mjs",
-    "verify": "npm run check && npm run build && npm test && npm run test:browser"
+    "verify": "npm run check && npm run build && npm test && npm run test:browser",
+    "capture:cover": "node scripts/capture-cover.mjs"
   },
   "devDependencies": {
     "@astrojs/check": "0.9.10",

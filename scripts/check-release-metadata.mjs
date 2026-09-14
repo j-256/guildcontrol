@@ -124,6 +124,7 @@ const EXPECTED_SITE_SCRIPTS = {
   "browser:install": "playwright install chromium",
   "browser:install:ci": "playwright install --with-deps chromium",
   build: "npm run generate && astro build",
+  "capture:cover": "node scripts/capture-cover.mjs",
   check: "npm run generate && astro check",
   deploy: "wrangler deploy",
   "deploy:dry-run": "wrangler deploy --dry-run --outdir .wrangler/dry-run",
@@ -1681,7 +1682,7 @@ async function checkAutomation(packageJson) {
   )
   const documentationJob = ci.slice(documentationJobStart, gateJobStart)
   const gateJob = ci.slice(gateJobStart, workersJobStart)
-  const workersJob = ci.slice(workersJobStart)
+  const workersJob = ci.slice(workersJobStart + 1).split(/\n {2}[\w-]+:/u, 1)[0]
   for (const required of [
     "npm run deploy:dry-run",
     "uses: actions/upload-artifact@",
