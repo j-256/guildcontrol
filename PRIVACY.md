@@ -54,4 +54,4 @@ Metrics and traces are bounded and redacted. Export is off unless the configurat
 
 You choose the bot's Discord permissions, exact connector scope, enabled toolsets, write capabilities, local record paths, Gateway policy, and telemetry policy. Revoke the bot token in the Discord Developer Portal to stop its use. Remove the connector from the MCP host to stop local execution. Delete any generated migration guide and configuration-selected local activity, receipt, profile, or telemetry files according to your own retention policy.
 
-Discord processes data under [Discord's privacy policy](https://discord.com/privacy). Questions or vulnerability reports for this connector can be filed through the repository's [support and security channels](https://github.com/j-256/guildcontrol/blob/v2.2.0/SUPPORT.md).
+Discord processes data under [Discord's privacy policy](https://discord.com/privacy). Questions or vulnerability reports for this connector can be filed through the repository's [support and security channels](https://github.com/j-256/guildcontrol/blob/v2.2.1/SUPPORT.md).

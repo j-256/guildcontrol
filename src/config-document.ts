@@ -1163,7 +1163,7 @@ export const CONNECTOR_CONFIG_DOCUMENT_SCHEMA = z.strictObject({
   }).describe("Advertised MCP tool surface"),
 }).meta({
   description: "Strict non-secret configuration for guildcontrol",
-  id: CONFIG_DOCUMENT_SCHEMA_ID,
+  // Keep the root inline; connectorConfigJsonSchema adds the public $id
   title: "guildcontrol configuration",
 })
 

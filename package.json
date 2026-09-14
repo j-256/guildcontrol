@@ -1,6 +1,6 @@
 {
   "name": "guildctl",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "Safety-first MCP server for Discord with privacy-safe reads, audits, and reviewed administration",
   "license": "AGPL-3.0-only",
   "author": "j-256",
@@ -81,22 +81,22 @@
     "@modelcontextprotocol/client": "2.0.0",
     "@modelcontextprotocol/server": "2.0.0",
     "@opentelemetry/api": "1.9.1",
-    "@opentelemetry/context-async-hooks": "2.10.0",
-    "@opentelemetry/exporter-metrics-otlp-proto": "0.221.0",
-    "@opentelemetry/exporter-trace-otlp-proto": "0.221.0",
-    "@opentelemetry/otlp-exporter-base": "0.221.0",
-    "@opentelemetry/resources": "2.10.0",
-    "@opentelemetry/sdk-metrics": "2.10.0",
-    "@opentelemetry/sdk-trace": "2.10.0",
-    "zod": "4.4.3"
+    "@opentelemetry/context-async-hooks": "2.11.0",
+    "@opentelemetry/exporter-metrics-otlp-proto": "0.222.0",
+    "@opentelemetry/exporter-trace-otlp-proto": "0.222.0",
+    "@opentelemetry/otlp-exporter-base": "0.222.0",
+    "@opentelemetry/resources": "2.11.0",
+    "@opentelemetry/sdk-metrics": "2.11.0",
+    "@opentelemetry/sdk-trace": "2.11.0",
+    "zod": "4.5.4"
   },
   "devDependencies": {
-    "@types/node": "26.4.0",
+    "@types/node": "26.4.1",
     "ajv": "8.20.0",
     "ajv-formats": "3.0.1",
     "esbuild": "0.28.2",
     "fflate": "0.8.3",
-    "tsx": "4.23.12",
+    "tsx": "4.23.13",
     "typescript": "7.0.2"
   },
   "allowScripts": {

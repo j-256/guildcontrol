@@ -75,7 +75,7 @@ interface GitHubReleaseModule {
 
 const modulePath = pathToFileURL(resolve("scripts/github-release.mjs")).href
 const githubRelease = await import(modulePath) as GitHubReleaseModule
-const VERSION = "2.2.0"
+const VERSION = "2.2.1"
 const REVISION = "a".repeat(40)
 const OCI_DIGEST = `sha256:${"b".repeat(64)}`
 const ARCHIVE_NAME = `guildctl-${VERSION}.tgz`
@@ -355,7 +355,7 @@ test("rejects secret-bearing or unverified catalog evidence and mismatched SBOM 
       }),
       label: "static requirement",
     },
-    { label: "SBOM", sbom: validSbom({ name: "other-package@2.2.0" }) },
+    { label: "SBOM", sbom: validSbom({ name: "other-package@2.2.1" }) },
   ]
   for (const [index, entry] of cases.entries()) {
     const directory = join(root, `case-${index}`)
