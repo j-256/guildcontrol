@@ -681,7 +681,7 @@ const CAPPYEO_GROUPS = Object.freeze([
     recipes: ["channel-publisher", "message-channel"],
     sourcePrefixes: ["messages_", "polls_", "reactions_"],
     targetTools: [...TARGET_MESSAGE_LIFECYCLE, "add_reaction", "add_reactions", "remove_own_reaction", "list_message_reactions", "list_reaction_users", "plan_reaction_moderation", "execute_reaction_moderation", "get_poll", "list_poll_answer_voters", "plan_poll_end", "execute_poll_end"],
-    trustChange: "Message writes add explicit mention policy, anti-spam controls, replay safety, and content-free receipts. Rich message reads use bounded structured results and summary text rather than the source release's derived component and embed text; attachment metadata omits delivery URLs.",
+    trustChange: "Message writes add explicit mention policy, anti-spam controls, replay safety, and content-free receipts. Rich message reads add bounded untrusted Text Display and embed text alongside preserved structured fields; unsupported structures are explicit and attachment metadata omits delivery URLs.",
   },
   {
     disposition: "review-required",

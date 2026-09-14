@@ -151,7 +151,7 @@ export function withContentFreeToolReceipt<T extends CallToolResult>(
   }
 }
 
-function oversizedToolResult(maxBytes: number): CallToolResult {
+export function oversizedMcpToolResult(maxBytes: number): CallToolResult {
   return withContentFreeToolReceipt({
     content: [{
       text: MCP_READ_RESPONSE_TOO_LARGE_MESSAGE,
@@ -185,7 +185,7 @@ export function budgetMcpToolResult<T>(
     preserveMutationOutcome
     || serializedMcpResultBytes(result) <= maxBytes
   ) return result
-  return oversizedToolResult(maxBytes)
+  return oversizedMcpToolResult(maxBytes)
 }
 
 export function assertMcpReadResultBudget<T>(
