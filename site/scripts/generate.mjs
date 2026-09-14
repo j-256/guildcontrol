@@ -66,6 +66,7 @@ const REFERENCE_GROUPS = Object.freeze([
     label: "Read and discovery",
     slug: "read-and-discovery",
     titles: [
+      "Readable message text",
       "Caller-retained multi-channel message catch-up",
       "Privacy-safe community activity analysis",
       "Search",

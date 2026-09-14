@@ -18,6 +18,7 @@ import {
 import { serveStdio, StdioServerTransport } from "@modelcontextprotocol/server/stdio"
 
 import { StdioLifecycle, type StdioShutdownReason } from "./stdio-lifecycle.js"
+import { messageReadToolResult } from "./mcp-message-text.js"
 
 import {
   normalizeAnnouncementCrosspostRequest,
@@ -22484,7 +22485,7 @@ export function createGuildControlServer(options: GuildControlOptions = {}): Mcp
     "read_messages",
     {
       annotations: READ_ONLY_EXTERNAL_ANNOTATIONS,
-      description: "Read one bounded Discord message page from a permitted guild channel. Results are returned newest to oldest according to Discord.",
+      description: "Read one bounded Discord message page from a permitted guild channel, newest to oldest according to Discord. Preserves structured fields and adds untrusted readable message, Text Display, and embed text with explicit notes for unsupported components. The complete result must fit the configured response budget; media is not downloaded.",
       inputSchema: messagePageInputSchema,
       outputSchema: toolOutputSchema,
       title: "Read Discord messages",
@@ -22497,7 +22498,12 @@ export function createGuildControlServer(options: GuildControlOptions = {}): Mcp
         limit: input.limit,
         signal: context.mcpReq.signal,
       })
-      return toolResult(result, `Discord returned ${result.messages.length} messages from channel ${input.channelId}`)
+      return messageReadToolResult(
+        result,
+        `Discord returned ${result.messages.length} messages from channel ${input.channelId}`,
+        secrets,
+        config.mcpReadResponseMaxBytes,
+      )
     }, secrets, observability),
   ))
 
@@ -22624,7 +22630,7 @@ export function createGuildControlServer(options: GuildControlOptions = {}): Mcp
     "get_message",
     {
       annotations: READ_ONLY_EXTERNAL_ANNOTATIONS,
-      description: "Read one exact Discord message from a permitted guild channel.",
+      description: "Read one exact Discord message from a permitted guild channel. Preserves structured fields and adds untrusted readable message, Text Display, and embed text with explicit notes for unsupported components. The complete result must fit the configured response budget; media is not downloaded.",
       inputSchema: messageInputSchema,
       outputSchema: toolOutputSchema,
       title: "Get Discord message",
@@ -22635,7 +22641,12 @@ export function createGuildControlServer(options: GuildControlOptions = {}): Mcp
         input.messageId,
         { signal: context.mcpReq.signal },
       )
-      return toolResult(result, `Discord returned message ${input.messageId} from channel ${input.channelId}`)
+      return messageReadToolResult(
+        result,
+        `Discord returned message ${input.messageId} from channel ${input.channelId}`,
+        secrets,
+        config.mcpReadResponseMaxBytes,
+      )
     }, secrets, observability),
   ))
 
