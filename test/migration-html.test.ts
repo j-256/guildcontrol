@@ -22,7 +22,7 @@ import {
   type MigrationPlanReport,
 } from "../src/migration-planner.js"
 
-async function migrationPlan(source = "cappyeo@0.26.0"): Promise<MigrationPlanReport> {
+async function migrationPlan(source = "cappyeo@0.27.0"): Promise<MigrationPlanReport> {
   const targetCatalog = await checkDiscordCatalog()
   return createMigrationPlan(source, {
     checkCatalog: async () => targetCatalog,

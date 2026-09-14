@@ -130,7 +130,7 @@ const EXPECTED_HOST_ADAPTERS = [
   "mcp-json",
 ]
 const EXPECTED_MIGRATION_SOURCES = [
-  "cappyeo@0.26.0",
+  "cappyeo@0.27.0",
   "hypark@0.1.1",
   "jaimen-bell@0.1.1",
   "oratorian@1.1.4",
