@@ -10,6 +10,8 @@ export interface McpbPackageMetadata {
 
 export function mcpbArchiveName(version: string): string
 
+export function verifyMcpbStderr(stderr: string, nodeMajor: number): void
+
 export function validateMcpbManifest(
   document: unknown,
   packageJson: McpbPackageMetadata,

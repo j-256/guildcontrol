@@ -6,10 +6,55 @@ import {
   MCPB_ARCHIVE_ENTRIES,
   mcpbArchiveName,
   validateMcpbManifest,
+  verifyMcpbStderr,
 } from "../scripts/mcpb-artifact.mjs"
 
 const packageJson = JSON.parse(await readFile("package.json", "utf8"))
 const manifest = JSON.parse(await readFile("mcpb/manifest.json", "utf8"))
+
+function shutdownReport() {
+  return {
+    event: "stdio-shutdown",
+    schemaVersion: 1,
+    shutdownId: "00000000-0000-4000-8000-000000000001",
+    reason: "stdin-ended",
+    status: "complete",
+    deadlineMs: 5_000,
+    durationMs: 2,
+    activeTools: 0,
+    components: ["gateway", "native-interactions", "mcp", "tools", "telemetry"].map((name) => ({
+      name, status: "complete", durationMs: 1,
+    })),
+  }
+}
+
+const READY_MESSAGE = "[mcp] GuildControl MCP stdio server ready\n"
+
+test("MCPB stderr acceptance requires exact content-free EOF shutdown evidence", () => {
+  const output = `${READY_MESSAGE}${JSON.stringify(shutdownReport())}\n`
+  verifyMcpbStderr(output, 24)
+  verifyMcpbStderr(`Warning: disabling flag --expose_wasm due to conflicting flags\n${output}`, 22)
+  for (const invalid of [
+    READY_MESSAGE,
+    output + "private extra diagnostic\n",
+    output + JSON.stringify(shutdownReport()) + "\n",
+    output.trimEnd(),
+    `private startup text\n${output}`,
+  ]) assert.throws(() => verifyMcpbStderr(invalid, 24))
+})
+
+test("MCPB stderr acceptance rejects incomplete, oversized, or content-bearing shutdown evidence", () => {
+  for (const invalid of [
+    { ...shutdownReport(), status: "timeout" },
+    { ...shutdownReport(), reason: "sigterm" },
+    { ...shutdownReport(), activeTools: 1 },
+    { ...shutdownReport(), durationMs: 8_000 },
+    { ...shutdownReport(), shutdownId: "invalid" },
+    { ...shutdownReport(), privateContent: "withheld" },
+    { ...shutdownReport(), components: [] },
+    { ...shutdownReport(), components: [{ name: "mcp", status: "failed", durationMs: 1 }] },
+  ]) assert.throws(() => verifyMcpbStderr(`${READY_MESSAGE}${JSON.stringify(invalid)}\n`, 24))
+})
 
 test("MCPB manifest is pinned, model-neutral, and exact", async () => {
   await validateMcpbManifest(manifest, packageJson)

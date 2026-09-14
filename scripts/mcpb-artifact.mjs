@@ -3,6 +3,7 @@ import { build } from "esbuild"
 import { zipSync, unzipSync } from "fflate"
 import Ajv from "ajv"
 import addFormats from "ajv-formats"
+import { once } from "node:events"
 import {
   copyFile,
   lstat,
@@ -42,6 +43,11 @@ const MCPB_VERIFY_TOKEN = "mcpb-artifact-verification-token"
 const MCPB_READY_MESSAGE = "[mcp] GuildControl MCP stdio server ready\n"
 const MCPB_LITE_MODE_WARNING_MAX_NODE_MAJOR = 23
 const LEGACY_LITE_MODE_WARNING = "Warning: disabling flag --expose_wasm due to conflicting flags\n"
+const MCPB_SHUTDOWN_DEADLINE_MS = 5_000
+const MCPB_EXIT_TIMEOUT_MS = 7_000
+const MCPB_SHUTDOWN_COMPONENTS = Object.freeze([
+  "gateway", "native-interactions", "mcp", "tools", "telemetry",
+])
 const MCPB_DOCUMENTATION_ROOT = ".."
 const ZIP_CENTRAL_DIRECTORY_SIGNATURE = 0x02014b50
 const ZIP_END_SIGNATURE = 0x06054b50
@@ -478,6 +484,30 @@ async function extractArchive(unpacked, root) {
   }
 }
 
+export function verifyMcpbStderr(stderr, nodeMajor) {
+  const prefix = `${nodeMajor <= MCPB_LITE_MODE_WARNING_MAX_NODE_MAJOR
+    ? LEGACY_LITE_MODE_WARNING : ""}${MCPB_READY_MESSAGE}`
+  assert.ok(stderr.startsWith(prefix), "Unpacked MCPB startup diagnostic is invalid")
+  const report = JSON.parse(stderr.slice(prefix.length))
+  assert.match(report.shutdownId, /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/u)
+  const durations = [report.durationMs, ...report.components.map(({ durationMs }) => durationMs)]
+  assert.ok(durations.every((value) => Number.isSafeInteger(value) && value >= 0 && value <= MCPB_EXIT_TIMEOUT_MS))
+  assert.deepEqual(report, {
+    event: "stdio-shutdown",
+    schemaVersion: 1,
+    shutdownId: report.shutdownId,
+    reason: "stdin-ended",
+    status: "complete",
+    deadlineMs: MCPB_SHUTDOWN_DEADLINE_MS,
+    durationMs: report.durationMs,
+    activeTools: 0,
+    components: MCPB_SHUTDOWN_COMPONENTS.map((name, index) => ({
+      name, status: "complete", durationMs: report.components[index]?.durationMs,
+    })),
+  })
+  assert.equal(stderr, `${prefix}${JSON.stringify(report)}\n`, "Unpacked MCPB emitted unexpected stderr")
+}
+
 async function verifyMcpHandshake(unpacked, root, packageJson) {
   const extraction = join(root, "unpacked")
   await mkdir(extraction)
@@ -553,20 +583,19 @@ async function verifyMcpHandshake(unpacked, root, packageJson) {
     invariant(resources.resources.length > 0, "Unpacked MCPB resources are missing")
     invariant(templates.resourceTemplates.length > 0, "Unpacked MCPB resource templates are missing")
     invariant(prompts.prompts.length > 0, "Unpacked MCPB prompts are missing")
+    // Closing the SDK client first can conceal a bundle hang with its kill fallback
+    const child = transport._process
+    invariant(child?.stdin, "Unpacked MCPB child input is unavailable")
+    const closed = once(child, "close", { signal: AbortSignal.timeout(MCPB_EXIT_TIMEOUT_MS) })
+    child.stdin.end()
+    const [code, signal] = await closed
+    assert.equal(code, 0, "Unpacked MCPB did not exit successfully after EOF")
+    assert.equal(signal, null, "Unpacked MCPB required a termination signal")
   } finally {
     await client.close().catch(() => undefined)
   }
   const nodeMajor = Number.parseInt(process.versions.node.split(".", 1)[0] || "", 10)
-  const expectedStderr = `${
-    nodeMajor <= MCPB_LITE_MODE_WARNING_MAX_NODE_MAJOR
-      ? LEGACY_LITE_MODE_WARNING
-      : ""
-  }${MCPB_READY_MESSAGE}`
-  assert.equal(
-    Buffer.concat(stderr).toString("utf8"),
-    expectedStderr,
-    "Unpacked MCPB emitted unexpected stderr",
-  )
+  verifyMcpbStderr(Buffer.concat(stderr).toString("utf8"), nodeMajor)
 }
 
 export async function buildAndVerifyMcpb(options = {}) {
