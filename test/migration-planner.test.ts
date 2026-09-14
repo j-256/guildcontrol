@@ -129,7 +129,7 @@ test("migration planning reads no ambient credential, source tree, configuration
       throw new Error("Migration planning attempted network access")
     }) as typeof fetch
 
-    const plan = await createMigrationPlan("cappyeo@0.27.0", {
+    const plan = await createMigrationPlan("cappyeo@0.27.1", {
       checkCatalog: async () => targetCatalog,
     })
     const text = JSON.stringify(plan)
@@ -146,7 +146,7 @@ test("migration planning reads no ambient credential, source tree, configuration
 })
 
 test("migration source selection is version-exact and rejects aliases, paths, and unknown releases", () => {
-  assert.equal(normalizeMigrationSourceId(" CAPPYEO@0.27.0 "), "cappyeo@0.27.0")
+  assert.equal(normalizeMigrationSourceId(" CAPPYEO@0.27.1 "), "cappyeo@0.27.1")
   assert.throws(() => normalizeMigrationSourceId("cappyeo"), /must be one of/u)
   assert.throws(() => normalizeMigrationSourceId("cappyeo@latest"), /must be one of/u)
   assert.throws(() => normalizeMigrationSourceId("./source-checkout"), /must be one of/u)

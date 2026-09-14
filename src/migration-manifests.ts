@@ -3,7 +3,7 @@ import type { McpToolName } from "./observability-catalog.js"
 import type { SetupPresetName } from "./setup-presets.js"
 
 export const MIGRATION_SOURCE_IDS = Object.freeze([
-  "cappyeo@0.27.0",
+  "cappyeo@0.27.1",
   "hypark@0.1.1",
   "jaimen-bell@0.1.1",
   "oratorian@1.1.4",
@@ -681,7 +681,7 @@ const CAPPYEO_GROUPS = Object.freeze([
     recipes: ["channel-publisher", "message-channel"],
     sourcePrefixes: ["messages_", "polls_", "reactions_"],
     targetTools: [...TARGET_MESSAGE_LIFECYCLE, "add_reaction", "add_reactions", "remove_own_reaction", "list_message_reactions", "list_reaction_users", "plan_reaction_moderation", "execute_reaction_moderation", "get_poll", "list_poll_answer_voters", "plan_poll_end", "execute_poll_end"],
-    trustChange: "Message writes add explicit mention policy, anti-spam controls, replay safety, and content-free receipts.",
+    trustChange: "Message writes add explicit mention policy, anti-spam controls, replay safety, and content-free receipts. Rich message reads use bounded structured results and summary text rather than the source release's derived component and embed text; attachment metadata omits delivery URLs.",
   },
   {
     disposition: "review-required",
@@ -1015,15 +1015,15 @@ export const MIGRATION_SOURCE_DEFINITIONS = Object.freeze([
     auditFidelity: "tagged-source",
     auditedInventoryDigest: "sha256:dab2107a16da8e9738281c2db287a13dadfff5d82abe8e796cd7bd8b9f166a92",
     baselinePreset: "channel-reader",
-    evidenceUrl: "https://github.com/cappyeo/discord-mcp/tree/836f9a7abb6368ce660bfcd83057a1784261c850",
+    evidenceUrl: "https://github.com/cappyeo/discord-mcp/tree/cfc1b5575fad7ec71695de3ea860bb0720cffd94",
     groups: CAPPYEO_GROUPS,
-    id: "cappyeo@0.27.0",
+    id: "cappyeo@0.27.1",
     limitations: ["The source release exposes optional HTTP, Gateway, embedded intelligence, and third-party integration modes that are not configuration-compatible with this local stdio connector."],
     product: "Cappyeo",
     registryName: "io.github.cappyeo/discord-mcp",
-    registryUrl: "https://registry.modelcontextprotocol.io/v0.1/servers/io.github.cappyeo%2Fdiscord-mcp/versions/0.27.0",
+    registryUrl: "https://registry.modelcontextprotocol.io/v0.1/servers/io.github.cappyeo%2Fdiscord-mcp/versions/0.27.1",
     sourceTools: CAPPYEO_TOOLS,
-    version: "0.27.0",
+    version: "0.27.1",
   },
   {
     auditFidelity: "tagged-source",

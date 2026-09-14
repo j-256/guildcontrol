@@ -78,7 +78,7 @@ Generate a complete release-exact outcome map before creating policy or changing
 
 ```sh
 npx --yes guildctl@2.2.1 migrate list
-npx --yes guildctl@2.2.1 migrate plan cappyeo@0.27.0 --html ./guildcontrol-migration.html
+npx --yes guildctl@2.2.1 migrate plan cappyeo@0.27.1 --html ./guildcontrol-migration.html
 ```
 
 The [migration guide](docs/migration.md) covers every scored peer release. Planning scans no checkout, reads no configuration, host setting, environment value, or credential, contacts no network or Discord endpoint, and changes nothing. It maps every audited source tool into supported, review-required, or intentionally excluded outcomes and validates target routes against the negotiated production catalog. It does not rewrite prompts, arguments, configuration, credentials, or host settings.
