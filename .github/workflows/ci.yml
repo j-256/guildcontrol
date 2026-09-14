@@ -354,6 +354,8 @@ jobs:
       actions: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: project-cover
@@ -363,6 +365,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -eu
+          gh auth setup-git --hostname github.com
           git fetch origin main
           if [ "$(git rev-parse origin/main)" != "$GITHUB_SHA" ]; then
             echo "A newer source commit superseded this cover; its build owns publication."
