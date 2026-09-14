@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { createHash, randomBytes } from "node:crypto"
+import { writeSync } from "node:fs"
 import { isAbsolute, resolve } from "node:path"
 import type { Readable, Writable } from "node:stream"
 
@@ -15,6 +16,8 @@ import {
   type RegisteredTool,
 } from "@modelcontextprotocol/server"
 import { serveStdio, StdioServerTransport } from "@modelcontextprotocol/server/stdio"
+
+import { StdioLifecycle, type StdioShutdownReason } from "./stdio-lifecycle.js"
 
 import {
   normalizeAnnouncementCrosspostRequest,
@@ -10819,6 +10822,7 @@ export interface DiscordToolService {
 
 export interface GuildControlOptions {
   catalogOnly?: boolean
+  toolLifecycle?: Pick<StdioLifecycle, "runTool">
   config?: ConnectorConfig
   environment?: NodeJS.ProcessEnv
   gateway?: GatewayEventSource
@@ -10831,7 +10835,9 @@ export interface GuildControlOptions {
 }
 
 export interface GuildControlRunOptions
-  extends Omit<GuildControlOptions, "nativeInteractions"> {
+  extends Omit<GuildControlOptions, "nativeInteractions" | "toolLifecycle"> {
+  exitOnShutdown?: boolean
+  shutdownTimeoutMs?: number
   gatewayRuntime?: GatewayRuntime
   nativeInteractionRuntime?: NativeInteractionRuntime
   observabilityRuntime?: ObservabilityRuntime
@@ -12958,7 +12964,10 @@ function errorEnvelope(error: unknown, secrets: readonly (string | undefined)[])
   }
 }
 
-function createSafeToolHandler(mcpReadResponseMaxBytes: number) {
+function createSafeToolHandler(
+  mcpReadResponseMaxBytes: number,
+  lifecycle?: Pick<StdioLifecycle, "runTool">,
+) {
   return function safeToolHandler<Input>(
     name: McpToolName,
     handler: (
@@ -12972,7 +12981,7 @@ function createSafeToolHandler(mcpReadResponseMaxBytes: number) {
       "discord-read",
       "local-read",
     ].includes(MCP_TOOL_RISK_CLASSES[name])
-    return async (
+    const invokeHandler = async (
       input: Input,
       context: McpToolContext,
     ) => {
@@ -13025,6 +13034,9 @@ function createSafeToolHandler(mcpReadResponseMaxBytes: number) {
         await notifyMcpToolProgress(context, MCP_TOOL_PROGRESS.finished)
       }
     }
+    return (input: Input, context: McpToolContext) => lifecycle
+      ? lifecycle.runTool(() => invokeHandler(input, context))
+      : invokeHandler(input, context)
   }
 }
 
@@ -20746,7 +20758,7 @@ function assertSoundboardPlaybackGateway(
 export function createGuildControlServer(options: GuildControlOptions = {}): McpServer {
   const environment = options.environment || process.env
   const config = options.config || loadConnectorConfig(environment)
-  const safeToolHandler = createSafeToolHandler(config.mcpReadResponseMaxBytes)
+  const safeToolHandler = createSafeToolHandler(config.mcpReadResponseMaxBytes, options.toolLifecycle)
   const observability = options.observability || new OperationalTelemetry({
     config: config.observability,
     ...(options.stderr ? { stderr: options.stderr } : {}),
@@ -35281,117 +35293,152 @@ export function runGuildControlServer(options: GuildControlRunOptions = {}) {
   })
   const stdin = options.stdin || process.stdin
   const stdout = options.stdout || process.stdout
-  const handle = (() => {
-    try {
-      observabilityRuntime?.start()
-      return serveStdio(() => createGuildControlServer({
-        config,
-        environment,
-        gateway,
-        nativeInteractions,
-        observability,
-        ...(options.requestStateKey ? { requestStateKey: options.requestStateKey } : {}),
-        ...(options.requestStateTtlSeconds
-          ? { requestStateTtlSeconds: options.requestStateTtlSeconds }
-          : {}),
-        service: toolService,
-        stderr,
-      }), {
-        onerror(error) {
-          stderr.write(`[mcp] ${redactText(error.message, secrets)}\n`)
-        },
-        transport: new StdioServerTransport(stdin, stdout),
-      })
-    } catch (error) {
-      void observabilityRuntime?.stop().catch(() => undefined)
-      throw error
-    }
-  })()
-
-  let closePromise: Promise<void> | undefined
-  let closing = false
+  const transport = new StdioServerTransport(stdin, stdout)
+  let handle: ReturnType<typeof serveStdio> | undefined
+  let nativeStopPromise: Promise<void> | undefined
+  const stopNativeInteractions = (): Promise<void> => {
+    nativeStopPromise ??= Promise.resolve().then(() => nativeInteractionRuntime?.stop())
+    return nativeStopPromise
+  }
+  const lifecycle = new StdioLifecycle({
+    gateway: async () => { await runtime?.stop() },
+    nativeInteractions: stopNativeInteractions,
+    mcp: async () => {
+      try {
+        await handle?.close()
+      } finally {
+        // Drain pipe errors already queued by transport closure before removing listeners
+        await new Promise<void>((resolve) => process.nextTick(resolve))
+      }
+    },
+    telemetry: async () => {
+      await observabilityRuntime?.stop()
+      if (observabilityRuntime?.getObservabilityStatus().exporter.state === "failed") {
+        throw new Error("Telemetry shutdown did not complete successfully")
+      }
+    },
+    ...(options.shutdownTimeoutMs === undefined ? {} : { timeoutMs: options.shutdownTimeoutMs }),
+    report(report) {
+      const line = `${JSON.stringify(report)}\n`
+      if (options.exitOnShutdown && stderr === process.stderr) writeSync(process.stderr.fd, line)
+      else stderr.write(line)
+    },
+  })
+  const close = (reason: StdioShutdownReason = "caller"): Promise<void> => {
+    const result = lifecycle.close(reason)
+    stdin.pause()
+    return result
+  }
+  const requestClose = (reason: StdioShutdownReason) => { void close(reason).catch(() => undefined) }
+  const onInputEnd = () => requestClose("stdin-ended")
+  const onInputError = () => requestClose("stdin-error")
+  const onOutputClose = () => requestClose("stdout-closed")
+  const onOutputError = () => requestClose("stdout-error")
+  const onSigint = () => requestClose("SIGINT")
+  const onSigterm = () => requestClose("SIGTERM")
   const detachLifecycle = () => {
-    stdin.off("close", onTransportEnd)
-    stdin.off("end", onTransportEnd)
-    stdin.off("error", onTransportEnd)
-    stdout.off("close", onTransportEnd)
-    stdout.off("error", onTransportEnd)
+    stdin.off("close", onInputEnd)
+    stdin.off("end", onInputEnd)
+    stdin.off("error", onInputError)
+    stdout.off("close", onOutputClose)
+    stdout.off("error", onOutputError)
+    if (options.exitOnShutdown) {
+      process.off("SIGINT", onSigint)
+      process.off("SIGTERM", onSigterm)
+    }
   }
-  const close = (): Promise<void> => {
-    if (closePromise) return closePromise
-    closing = true
-    closePromise = (async () => {
-      detachLifecycle()
-      let failure: unknown
-      try {
-        await runtime?.stop()
-      } catch (error) {
-        failure = error
-      }
-      try {
-        await nativeInteractionRuntime?.stop()
-      } catch (error) {
-        failure ??= error
-      }
-      try {
-        await handle.close()
-      } catch (error) {
-        failure ??= error
-      }
-      try {
-        await observabilityRuntime?.stop()
-      } catch (error) {
-        failure ??= error
-      }
-      if (failure) throw failure
-    })()
-    return closePromise
+  stdin.on("close", onInputEnd)
+  stdin.on("end", onInputEnd)
+  stdin.on("error", onInputError)
+  stdout.on("close", onOutputClose)
+  stdout.on("error", onOutputError)
+  if (options.exitOnShutdown) {
+    process.on("SIGINT", onSigint)
+    process.on("SIGTERM", onSigterm)
   }
-  function onTransportEnd(): void {
-    void close().catch((error: unknown) => {
-      stderr.write(`[mcp] ${redactText(errorMessage(error), secrets)}\n`)
+  void lifecycle.closed.then((report) => {
+    detachLifecycle()
+    if (options.exitOnShutdown) process.exit(report.status === "complete" ? 0 : 1)
+  })
+  try {
+    observabilityRuntime?.start()
+    handle = serveStdio(() => createGuildControlServer({
+      config,
+      environment,
+      gateway,
+      nativeInteractions,
+      observability,
+      ...(options.requestStateKey ? { requestStateKey: options.requestStateKey } : {}),
+      ...(options.requestStateTtlSeconds
+        ? { requestStateTtlSeconds: options.requestStateTtlSeconds }
+        : {}),
+      service: toolService,
+      stderr,
+      toolLifecycle: lifecycle,
+    }), {
+      onerror(error) {
+        stderr.write(`[mcp] ${redactText(error.message, secrets)}\n`)
+      },
+      transport,
     })
+    // serveStdio replaces transport callbacks; preserve its teardown before requesting ours
+    const onTransportClose = transport.onclose
+    transport.onclose = () => {
+      try { onTransportClose?.() } finally { requestClose("transport-closed") }
+    }
+    const onTransportMessage = transport.onmessage
+    transport.onmessage = (...args) => {
+      if (!lifecycle.closing) onTransportMessage?.(...args)
+    }
+  } catch (error) {
+    requestClose("startup-failed")
+    throw error
   }
-  stdin.once("close", onTransportEnd)
-  stdin.once("end", onTransportEnd)
-  stdin.once("error", onTransportEnd)
-  stdout.once("close", onTransportEnd)
-  stdout.once("error", onTransportEnd)
+  if (stdin.errored) requestClose("stdin-error")
+  else if (stdout.errored) requestClose("stdout-error")
+  else if (stdin.readableEnded || stdin.destroyed) requestClose("stdin-ended")
+  else if (stdout.destroyed || stdout.writableEnded) requestClose("stdout-closed")
 
-  if (nativeInteractionRuntime) {
-    void nativeInteractionRuntime.start()
-      .then(async () => {
-        if (closing) return
-        try {
-          await runtime?.start()
-        } catch (error) {
-          await nativeInteractionRuntime.stop().catch(() => undefined)
+  try {
+    if (!lifecycle.closing && nativeInteractionRuntime) {
+      void nativeInteractionRuntime.start()
+        .then(async () => {
+          if (lifecycle.closing) return
+          try {
+            await runtime?.start()
+          } catch (error) {
+            await stopNativeInteractions().catch(() => undefined)
+            stderr.write(
+              `[mcp] Gateway runtime unavailable: ${redactText(errorMessage(error), secrets)}\n`,
+            )
+          }
+        })
+        .catch((error: unknown) => {
           stderr.write(
-            `[mcp] Gateway runtime unavailable: ${redactText(errorMessage(error), secrets)}\n`,
+            `[mcp] Native Interaction ingress unavailable: ${redactText(errorMessage(error), secrets)}\n`,
           )
-        }
-      })
-      .catch((error: unknown) => {
+        })
+    } else if (!lifecycle.closing) {
+      void runtime?.start().catch((error: unknown) => {
         stderr.write(
-          `[mcp] Native Interaction ingress unavailable: ${redactText(errorMessage(error), secrets)}\n`,
+          `[mcp] Gateway runtime unavailable: ${redactText(errorMessage(error), secrets)}\n`,
         )
       })
-  } else {
-    void runtime?.start().catch((error: unknown) => {
-      stderr.write(
-        `[mcp] Gateway runtime unavailable: ${redactText(errorMessage(error), secrets)}\n`,
-      )
-    })
+    }
+    if (!lifecycle.closing) stderr.write("[mcp] GuildControl MCP stdio server ready\n")
+  } catch (error) {
+    requestClose("startup-failed")
+    throw error
   }
-  stderr.write("[mcp] GuildControl MCP stdio server ready\n")
   return {
     close,
+    closed: lifecycle.closed,
   }
 }
 
 if (isMainModule(import.meta.url)) {
   try {
-    runGuildControlServer()
+    runGuildControlServer({ exitOnShutdown: true })
   } catch (error) {
     const secrets = Object.entries(process.env)
       .filter(([name]) => DISCORD_TOKEN_ENVIRONMENT_PATTERN.test(name))

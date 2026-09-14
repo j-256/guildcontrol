@@ -15293,7 +15293,7 @@ async function connectedModernStdioFixture(
     serverOutput,
     clientMessages,
   ))
-  return { client, ...serviceData }
+  return { client, handle, serverInput, ...serviceData }
 }
 
 function structuredContent(result: { structuredContent?: unknown }): Record<string, unknown> {
@@ -15411,6 +15411,35 @@ test("MCP canonical tools emit requested content-free progress in both protocol 
     assert.deepEqual(progress, EXPECTED_MCP_TOOL_PROGRESS)
   }
   assert.equal(modern.client.getProtocolEra(), "modern")
+})
+
+test("MCP stdio shutdown waits for an admitted tool to finish after transport closure", async (context) => {
+  let enter!: () => void
+  let release!: () => void
+  const entered = new Promise<void>((resolve) => { enter = resolve })
+  const pending = new Promise<void>((resolve) => { release = resolve })
+  context.after(() => release())
+  const { client, handle, serverInput } = await connectedModernStdioFixture(context, {
+    async statusRequest() {
+      enter()
+      await pending
+    },
+  })
+  const call = client.callTool({ name: "get_connector_status", arguments: {} }).catch(() => undefined)
+  await entered
+  let closed = false
+  void handle.closed.then(() => { closed = true })
+  serverInput.end()
+  await settleNotifications()
+  assert.equal(closed, false)
+  await client.close()
+  release()
+  await handle.close()
+  await call
+  const report = await handle.closed
+  assert.equal(report.activeTools, 0)
+  assert.equal(report.status, "complete")
+  assert.equal(report.reason, "stdin-ended")
 })
 
 test("MCP canonical tools do not emit unsolicited progress", async (context) => {

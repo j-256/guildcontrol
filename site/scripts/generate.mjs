@@ -49,6 +49,7 @@ const REFERENCE_GROUPS = Object.freeze([
       "Reviewed application entitlement lifecycle",
       "Install",
       "Operator CLI",
+      "Operational stdio shutdown",
       "Configuration",
       "Tools",
       "Interactive plan review",
