@@ -11,5 +11,15 @@
       "Publish npm, OCI, MCPB, and MCP Registry distributions under one stable 2.2.0 identity",
       "Retain the reviewed-write, least-privilege, privacy, and evidence boundaries"
     ]
+  },
+  "2.2.1": {
+    "version": "2.2.1",
+    "paragraphs": [
+      "GuildControl 2.2.1 updates its telemetry and schema dependencies while preserving the public configuration format and reviewed administration behavior."
+    ],
+    "highlights": [
+      "Update OpenTelemetry and Zod dependencies",
+      "Preserve the generated configuration schema contract"
+    ]
   }
 }

@@ -3,7 +3,7 @@
   "manifest_version": "0.3",
   "name": "guildcontrol",
   "display_name": "GuildControl MCP",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "Safety-first MCP server for Discord with privacy-safe reads, audits, and reviewed administration",
   "long_description": "Use an operator-owned Discord application and bot through one strict non-secret policy file. Read operations stay exactly scoped, high-impact changes require fresh reviewed plans and signed confirmation, and durable records exclude Discord content and display data.",
   "author": {
@@ -46,7 +46,7 @@
   ],
   "license": "AGPL-3.0-only",
   "privacy_policies": [
-    "https://github.com/j-256/guildcontrol/blob/v2.2.0/PRIVACY.md",
+    "https://github.com/j-256/guildcontrol/blob/v2.2.1/PRIVACY.md",
     "https://discord.com/privacy"
   ],
   "compatibility": {
