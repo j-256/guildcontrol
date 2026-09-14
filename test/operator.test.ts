@@ -6271,7 +6271,7 @@ test("MCP smoke negotiates the adapter, validates risk annotations, and calls st
   assert.equal(report.transport, "in-memory")
   assert.match(report.protocolVersion, /^2025-/)
   assert.equal(report.serverName, "guildcontrol")
-  assert.equal(report.serverVersion, "2.2.1")
+  assert.equal(report.serverVersion, "2.3.0")
   assert.equal(report.applicationId, APPLICATION_ID)
   assert.equal(report.botId, BOT_ID)
   assert.equal(
@@ -6600,7 +6600,7 @@ test("MCP smoke negotiates the stable protocol through a minimized spawned stdio
   assert.equal(report.transport, "stdio")
   assert.equal(report.protocolVersion, "2026-07-28")
   assert.equal(report.serverName, "guildcontrol")
-  assert.equal(report.serverVersion, "2.2.1")
+  assert.equal(report.serverVersion, "2.3.0")
   assert.equal(report.applicationId, APPLICATION_ID)
   assert.equal(report.botId, BOT_ID)
   assert.equal(report.toolsets.includes("connector"), true)

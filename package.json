@@ -1,6 +1,6 @@
 {
   "name": "guildctl",
-  "version": "2.2.1",
+  "version": "2.3.0",
   "description": "Safety-first MCP server for Discord with privacy-safe reads, audits, and reviewed administration",
   "license": "AGPL-3.0-only",
   "author": "j-256",

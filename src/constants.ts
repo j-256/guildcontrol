@@ -1,6 +1,6 @@
 export const CONNECTOR_NAME = "guildcontrol"
 export const CONNECTOR_TITLE = "GuildControl MCP"
-export const CONNECTOR_VERSION = "2.2.1"
+export const CONNECTOR_VERSION = "2.3.0"
 export const CONNECTOR_NPM_PACKAGE = "guildctl"
 export const CONNECTOR_CLI_COMMAND = "guildctl"
 export const CONNECTOR_NPX_COMMAND = "npx"

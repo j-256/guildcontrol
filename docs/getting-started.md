@@ -66,7 +66,7 @@ Choose `claude-desktop` for the verified MCPB import or one of `claude-code`, `c
 For a non-interactive terminal or CI wrapper, make every public decision explicit. JSON mode never prompts or opens a browser:
 
 ```sh
-npx --yes guildctl@2.2.1 onboard \
+npx --yes guildctl@2.3.0 onboard \
   --host codex \
   --application-id YOUR_APPLICATION_ID \
   --guild-id YOUR_GUILD_ID \
@@ -124,7 +124,7 @@ The bot user ID is different from the Application ID. Verified setup discovers b
 Replace the two public placeholders and run:
 
 ```sh
-npx --yes guildctl@2.2.1 preset install server-observer \
+npx --yes guildctl@2.3.0 preset install server-observer \
   --application-id YOUR_APPLICATION_ID \
   --guild-id YOUR_GUILD_ID \
   --html ./guildcontrol-onboarding.html
@@ -177,7 +177,7 @@ A runtime that projects secrets as files can instead pass `--token-file /absolut
 Run the exact setup command printed by the installation plan. For the recommended preset it is:
 
 ```sh
-npx --yes guildctl@2.2.1 setup \
+npx --yes guildctl@2.3.0 setup \
   --npx \
   --config ./guildcontrol.json \
   --preset server-observer \
@@ -195,9 +195,9 @@ Successful setup already proves the policy, credential, pinned identity, and exa
 Use these commands only after a manual policy edit, while diagnosing a failed host launch, or when independent release or operational evidence is useful:
 
 ```sh
-npx --yes guildctl@2.2.1 config validate ./guildcontrol.json
-npx --yes guildctl@2.2.1 doctor --config ./guildcontrol.json --online
-npx --yes guildctl@2.2.1 smoke --config ./guildcontrol.json
+npx --yes guildctl@2.3.0 config validate ./guildcontrol.json
+npx --yes guildctl@2.3.0 doctor --config ./guildcontrol.json --online
+npx --yes guildctl@2.3.0 smoke --config ./guildcontrol.json
 ```
 
 | Optional check | What it proves | When to use it |
@@ -212,7 +212,7 @@ If an optional check fails, use the recovery ladder below. Do not weaken policy,
 
 ## 7. Connect the MCP host
 
-After setup reports `ready`, use the one-click MCPB path when the host supports it and the policy names an environment credential. Download `guildcontrol-2.2.1.mcpb` from the [immutable GitHub Release](https://github.com/j-256/guildcontrol/releases) or select the MCPB distribution from the MCP Registry, then:
+After setup reports `ready`, use the one-click MCPB path when the host supports it and the policy names an environment credential. Download `guildcontrol-2.3.0.mcpb` from the [immutable GitHub Release](https://github.com/j-256/guildcontrol/releases) or select the MCPB distribution from the MCP Registry, then:
 
 1. Import the bundle into the local MCP host.
 2. Select the absolute canonical `guildcontrol.json` created above. The config picker is non-secret; the file remains the complete identity, scope, tools, capabilities, write, Gateway, storage, and observability policy.
@@ -226,13 +226,13 @@ The release workflow builds the bundle twice, requires identical bytes, validate
 If the host does not support MCPB or the policy names a protected token file, generate an exact host-neutral handoff. Optional detection can precede generation:
 
 ```sh
-npx --yes guildctl@2.2.1 host detect
+npx --yes guildctl@2.3.0 host detect
 ```
 
 The detection report is advisory and metadata-only. Generation still uses the explicit policy and does not read a credential, contact Discord or the network, start the server, discover a host, edit a policy or host configuration, or open a browser:
 
 ```sh
-npx --yes guildctl@2.2.1 host --npx --config ./guildcontrol.json --html ./guildcontrol-host-activation.html
+npx --yes guildctl@2.3.0 host --npx --config ./guildcontrol.json --html ./guildcontrol-host-activation.html
 ```
 
 The command prints the complete activation plan and exclusively creates the requested mode-0600 standalone guide. The file contains public application and bot IDs, private guild and channel IDs, the exact policy selector, and local command or secret-file paths, but no credential value. Keep it private and do not commit it, attach it to an issue, or include it in a screenshot.
@@ -244,7 +244,7 @@ The guide presents typed launch data similar to this shape:
   "command": "npx",
   "args": [
     "--yes",
-    "guildctl@2.2.1",
+    "guildctl@2.3.0",
     "serve",
     "--config",
     "/absolute/path/to/guildcontrol.json"
@@ -282,7 +282,7 @@ The canonical `environment.forward` field remains the source of every adapter's 
 For a terminal-only handoff, append one adapter ID to human output:
 
 ```sh
-npx --yes guildctl@2.2.1 host --npx --config ./guildcontrol.json --adapter vscode
+npx --yes guildctl@2.3.0 host --npx --config ./guildcontrol.json --adapter vscode
 ```
 
 `--json` always includes the complete `adapterCatalog`, regardless of `--adapter`, so automation can verify every adapter digest against the same activation digest. Generation never writes or discovers a host configuration. A file-backed credential policy causes every adapter to omit environment forwarding, input, and extension-setting fields because the exact policy already names the protected file.
@@ -290,7 +290,7 @@ npx --yes guildctl@2.2.1 host --npx --config ./guildcontrol.json --adapter vscod
 You may manually merge only the generated server and input records, or use the reviewed installer for a static JSON adapter. Codex TOML remains an exact manual projection because the installer deliberately does not parse or rewrite TOML. Choose the adapter and exact host path yourself; detection never supplies a path to `host plan` or `host apply`. The parent directory must already exist as a canonical process-owned directory that is not writable by a group or the world. An existing JSON file must be strict and bounded with private ownership and mode on POSIX:
 
 ```sh
-npx --yes guildctl@2.2.1 host plan \
+npx --yes guildctl@2.3.0 host plan \
   --npx \
   --config ./guildcontrol.json \
   --adapter vscode \
@@ -302,7 +302,7 @@ The path-free plan reports only the exact activation and adapter digests, absent
 After reviewing that report, repeat the identical activation, adapter, and target with the emitted digest and confirmation:
 
 ```sh
-npx --yes guildctl@2.2.1 host apply \
+npx --yes guildctl@2.3.0 host apply \
   --npx \
   --config ./guildcontrol.json \
   --adapter vscode \
@@ -317,7 +317,7 @@ After manual merge or reviewed apply of a JSON adapter, inspect the destination 
 
 ```sh
 chmod 600 /absolute/path/to/mcp.json
-npx --yes guildctl@2.2.1 host --npx --config ./guildcontrol.json --adapter vscode --inspect-host-file /absolute/path/to/mcp.json
+npx --yes guildctl@2.3.0 host --npx --config ./guildcontrol.json --adapter vscode --inspect-host-file /absolute/path/to/mcp.json
 ```
 
 Status 0 means the selected adapter's owned projection exactly matches the installed release and policy. Status 1 means drift; rerun `host plan`, review and apply or manually merge the owned records, reload the host, and inspect again. The report uses fixed difference categories and never returns the selected path, observed values, raw host content, or unrelated entries. The inspector may encounter credential material already present in that explicit file, so do not point it at an untrusted document. It enforces a bounded canonical stable regular-file read, rejects symbolic and extra hard links, and verifies a safe parent plus private file ownership and mode where the platform exposes them; other platforms report file checks as unverified. It never discovers or edits a host, contacts a network or Discord endpoint, resolves the connector credential, starts a process, or creates activity state.
@@ -343,7 +343,7 @@ After the host is working, remove a temporary terminal secret with `unset DISCOR
 Use the narrow `message-channel` recipe when the bot should only send plain text, reply, edit its own plain-text messages, or briefly acknowledge a long-running command in one exact channel. The recipe does not enable message-history reads, reactions, Components V2, embeds, coordination, a Gateway connection, or a privileged intent:
 
 ```sh
-npx --yes guildctl@2.2.1 recipe enable message-channel ./guildcontrol.json \
+npx --yes guildctl@2.3.0 recipe enable message-channel ./guildcontrol.json \
   --channel-id YOUR_CHANNEL_ID
 ```
 
@@ -408,18 +408,18 @@ The target channel must already be inside read scope, Message Content must be en
 Run the narrowest relevant layer first and continue only after it passes:
 
 ```sh
-npx --yes guildctl@2.2.1 config validate ./guildcontrol.json
-npx --yes guildctl@2.2.1 doctor --config ./guildcontrol.json
-npx --yes guildctl@2.2.1 doctor --config ./guildcontrol.json --online
-npx --yes guildctl@2.2.1 smoke --config ./guildcontrol.json
-npx --yes guildctl@2.2.1 host detect
-npx --yes guildctl@2.2.1 host --npx --config ./guildcontrol.json --html ./guildcontrol-host-activation.html
-npx --yes guildctl@2.2.1 host plan --npx --config ./guildcontrol.json --adapter ADAPTER_ID --host-file HOST_JSON_FILE
-npx --yes guildctl@2.2.1 host apply --npx --config ./guildcontrol.json --adapter ADAPTER_ID --host-file HOST_JSON_FILE --plan-digest PLAN_DIGEST --confirm HOST_SERVER_NAME
-npx --yes guildctl@2.2.1 host --npx --config ./guildcontrol.json --adapter ADAPTER_ID --inspect-host-file HOST_JSON_FILE
+npx --yes guildctl@2.3.0 config validate ./guildcontrol.json
+npx --yes guildctl@2.3.0 doctor --config ./guildcontrol.json
+npx --yes guildctl@2.3.0 doctor --config ./guildcontrol.json --online
+npx --yes guildctl@2.3.0 smoke --config ./guildcontrol.json
+npx --yes guildctl@2.3.0 host detect
+npx --yes guildctl@2.3.0 host --npx --config ./guildcontrol.json --html ./guildcontrol-host-activation.html
+npx --yes guildctl@2.3.0 host plan --npx --config ./guildcontrol.json --adapter ADAPTER_ID --host-file HOST_JSON_FILE
+npx --yes guildctl@2.3.0 host apply --npx --config ./guildcontrol.json --adapter ADAPTER_ID --host-file HOST_JSON_FILE --plan-digest PLAN_DIGEST --confirm HOST_SERVER_NAME
+npx --yes guildctl@2.3.0 host --npx --config ./guildcontrol.json --adapter ADAPTER_ID --inspect-host-file HOST_JSON_FILE
 ```
 
-- If a bare `guildctl` command is not found, use the pinned `npx --yes guildctl@2.2.1` prefix or install the package globally before using the bare executable.
+- If a bare `guildctl` command is not found, use the pinned `npx --yes guildctl@2.3.0` prefix or install the package globally before using the bare executable.
 - If the memory-optimized launcher is inappropriate for a CPU-heavy local workflow, place `--standard-runtime` before the command. This changes only Node's execution profile and never changes Discord policy or tool authority.
 - If policy creation rejects the directory, apply the exact platform-specific directory requirements above. Creation still needs a canonical private parent. An existing selected non-secret policy may be a stable safe symlink or have additional hard links, but credential files and private state retain their stricter link rules.
 - If offline doctor reports the credential unavailable, make the exact referenced environment variable or file available to that process. The connector has no fallback token source.

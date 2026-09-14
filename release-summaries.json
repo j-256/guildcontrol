@@ -21,5 +21,19 @@
       "Update OpenTelemetry and Zod dependencies",
       "Preserve the generated configuration schema contract"
     ]
+  },
+  "2.3.0": {
+    "version": "2.3.0",
+    "paragraphs": [
+      "GuildControl MCP 2.3.0 makes rich Discord messages readable in MCP text results and bounds operational shutdown while preserving the existing configuration format and reviewed administration gates.",
+      "This release includes the runtime dependency updates prepared under the unpublished 2.2.1 version and publishes the combined changes under a minor version for the added message presentation capability."
+    ],
+    "highlights": [
+      "Read original message, nested Text Display, and embed text alongside preserved structured results, with secret redaction and complete response limits",
+      "Close independent stdio resources under one deadline, drain admitted tool work before final telemetry, and retain recovery evidence when cleanup is incomplete",
+      "Refresh the Discord MCP Registry comparison and Cappyeo 0.27.1 migration assessment",
+      "Update runtime and documentation dependencies and improve documentation discovery and generated cover checks",
+      "Verify clean EOF shutdown in installed npm and MCPB distributions"
+    ]
   }
 }
