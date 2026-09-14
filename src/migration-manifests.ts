@@ -3,7 +3,7 @@ import type { McpToolName } from "./observability-catalog.js"
 import type { SetupPresetName } from "./setup-presets.js"
 
 export const MIGRATION_SOURCE_IDS = Object.freeze([
-  "cappyeo@0.26.0",
+  "cappyeo@0.27.0",
   "hypark@0.1.1",
   "jaimen-bell@0.1.1",
   "oratorian@1.1.4",
@@ -1015,15 +1015,15 @@ export const MIGRATION_SOURCE_DEFINITIONS = Object.freeze([
     auditFidelity: "tagged-source",
     auditedInventoryDigest: "sha256:dab2107a16da8e9738281c2db287a13dadfff5d82abe8e796cd7bd8b9f166a92",
     baselinePreset: "channel-reader",
-    evidenceUrl: "https://github.com/cappyeo/discord-mcp/tree/0bdf017fb33a6da17a9eed1b7d98f1952f300777",
+    evidenceUrl: "https://github.com/cappyeo/discord-mcp/tree/836f9a7abb6368ce660bfcd83057a1784261c850",
     groups: CAPPYEO_GROUPS,
-    id: "cappyeo@0.26.0",
+    id: "cappyeo@0.27.0",
     limitations: ["The source release exposes optional HTTP, Gateway, embedded intelligence, and third-party integration modes that are not configuration-compatible with this local stdio connector."],
     product: "Cappyeo",
     registryName: "io.github.cappyeo/discord-mcp",
-    registryUrl: "https://registry.modelcontextprotocol.io/v0.1/servers/io.github.cappyeo%2Fdiscord-mcp/versions/0.26.0",
+    registryUrl: "https://registry.modelcontextprotocol.io/v0.1/servers/io.github.cappyeo%2Fdiscord-mcp/versions/0.27.0",
     sourceTools: CAPPYEO_TOOLS,
-    version: "0.26.0",
+    version: "0.27.0",
   },
   {
     auditFidelity: "tagged-source",
