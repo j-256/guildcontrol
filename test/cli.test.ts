@@ -253,7 +253,7 @@ function smokeReport(): SmokeReport {
     resourceUris: ["discord://connector/safety"],
     schemaVersion: OPERATOR_REPORT_SCHEMA_VERSION,
     serverName: "guildcontrol",
-    serverVersion: "2.2.0",
+    serverVersion: CONNECTOR_VERSION,
     status: "ok",
     toolCount: 3,
     toolsets: ["connector", "messages"],
@@ -327,7 +327,7 @@ function catalogReport(): DiscordCatalogCheckReport {
     safetyResourceDigest: `sha256:${"b".repeat(64)}`,
     schemaVersion: 1,
     serverName: "guildcontrol",
-    serverVersion: "2.2.0",
+    serverVersion: CONNECTOR_VERSION,
     status: "ok",
     toolCount: 4,
     toolAccessManifest: createMcpToolAccessManifest(

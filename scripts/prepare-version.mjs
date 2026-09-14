@@ -29,7 +29,6 @@ const VERSION_SOURCE_FILES = Object.freeze([
   "scripts/check-published-artifacts.mjs",
   "server.json",
   "src/constants.ts",
-  "test/cli.test.ts",
   "test/github-release.test.ts",
   "test/oci-registry.test.ts",
   "test/operator.test.ts",
@@ -41,6 +40,7 @@ const VERSION_MATCH_EXCEPTIONS = Object.freeze([
   "scripts/pack-and-verify.mjs",
   "site/package-lock.json",
   "src/migration-manifests.ts",
+  "test/cli.test.ts",
   "test/migration-html.test.ts",
   "test/prepare-version.test.ts",
 ])
