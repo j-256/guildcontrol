@@ -35,7 +35,14 @@ const VERSION_SOURCE_FILES = Object.freeze([
   "test/operator.test.ts",
 ])
 const VERSION_MATCH_EXCEPTIONS = Object.freeze([
+  // Pinned third-party releases and parser fixtures do not follow the package version
+  "docs/comparison.md",
+  "docs/migration.md",
+  "scripts/pack-and-verify.mjs",
   "site/package-lock.json",
+  "src/migration-manifests.ts",
+  "test/migration-html.test.ts",
+  "test/prepare-version.test.ts",
 ])
 const MUTATED_FILES = Object.freeze([
   ...PACKAGE_VERSION_FILES,
@@ -140,12 +147,9 @@ async function assertReleaseCheckout(targetVersion) {
   invariant(remoteTag.code === 2, `Remote tag v${targetVersion} already exists`)
 }
 
-async function assertVersionFrontier(currentVersion) {
-  const result = await gitOutput(["grep", "-l", "--fixed-strings", currentVersion, "--"], [0, 1])
-  const actual = result.value ? result.value.split("\n").sort() : []
-  const summaries = await readJson(resolve(REPOSITORY_ROOT, RELEASE_SUMMARIES_FILE))
+export function validateVersionFrontier(actual, includesReleaseSummary) {
   const expected = [...PACKAGE_VERSION_FILES, ...VERSION_SOURCE_FILES]
-  if (summaries[currentVersion] !== undefined) expected.push(RELEASE_SUMMARIES_FILE)
+  if (includesReleaseSummary) expected.push(RELEASE_SUMMARIES_FILE)
   const expectedSet = new Set(expected)
   const exceptions = new Set(VERSION_MATCH_EXCEPTIONS)
   const missing = expected.filter((path) => !actual.includes(path)).sort()
@@ -154,6 +158,13 @@ async function assertVersionFrontier(currentVersion) {
     missing.length === 0 && unexpected.length === 0,
     `Current version source frontier differs: missing ${missing.join(", ") || "none"}; unexpected ${unexpected.join(", ") || "none"}`,
   )
+}
+
+async function assertVersionFrontier(currentVersion) {
+  const result = await gitOutput(["grep", "-l", "--fixed-strings", currentVersion, "--"], [0, 1])
+  const actual = result.value ? result.value.split("\n").sort() : []
+  const summaries = await readJson(resolve(REPOSITORY_ROOT, RELEASE_SUMMARIES_FILE))
+  validateVersionFrontier(actual, summaries[currentVersion] !== undefined)
 }
 
 async function replaceVersion(path, currentVersion, targetVersion) {

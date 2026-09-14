@@ -1,4 +1,6 @@
 import assert from "node:assert/strict"
+import { execFileSync } from "node:child_process"
+import { readFileSync } from "node:fs"
 import { resolve } from "node:path"
 import test from "node:test"
 
@@ -7,12 +9,31 @@ import {
   parseArguments,
   sourceDateEpoch,
   validateReleaseSummary,
+  validateVersionFrontier,
 } from "../scripts/prepare-version.mjs"
 
 const SUMMARY = Object.freeze({
   highlights: ["Retain compatible behavior"],
   paragraphs: ["Establish the stable version line"],
   version: "2.2.0",
+})
+
+test("accepts the tracked release frontier without rewriting pinned third-party versions", () => {
+  const { version } = JSON.parse(readFileSync("package.json", "utf8")) as { version: string }
+  const summaries = JSON.parse(readFileSync("release-summaries.json", "utf8")) as Record<string, unknown>
+  const paths = execFileSync("git", ["grep", "-l", "--fixed-strings", version, "--"], { encoding: "utf8" })
+    .trim().split("\n")
+  const includesSummary = summaries[version] !== undefined
+
+  assert.doesNotThrow(() => validateVersionFrontier(paths, includesSummary))
+  assert.throws(
+    () => validateVersionFrontier([...paths, "src/unreviewed-version.ts"], includesSummary),
+    /unexpected src\/unreviewed-version\.ts/,
+  )
+  assert.throws(
+    () => validateVersionFrontier(paths.filter((path) => path !== "README.md"), includesSummary),
+    /missing README\.md/,
+  )
 })
 
 test("parses one exact version preparation request", () => {
