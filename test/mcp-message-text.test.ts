@@ -41,6 +41,8 @@ function readable(result: CallToolResult): string {
 }
 
 test("message read text preserves ordered components, embed fields, empty originals, and unknown structured data", (context) => {
+  // Node 22 exposes fetch lazily until its first access
+  assert.equal(typeof globalThis.fetch, "function")
   const fetch = context.mock.method(globalThis, "fetch", () => {
     throw new Error("The text formatter must not fetch media")
   })
