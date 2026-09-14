@@ -52,6 +52,7 @@ jobs:
           cache: npm
       - run: npm run deps:locked
       - run: npm run metadata:check
+      - run: node --test scripts/start-cover-checks.test.mjs
       - run: npm run typecheck
       - if: ${{ matrix.node != '24' }}
         run: npm test
@@ -363,6 +364,7 @@ jobs:
       - name: Open an automatically merged cover pull request
         env:
           GH_TOKEN: ${{ github.token }}
+          COVER_WORKFLOWS: ci.yml,codeql.yml
         run: |
           set -eu
           gh auth setup-git --hostname github.com
@@ -397,6 +399,6 @@ jobs:
           EOF
             pr_url="$(gh pr create --base main --head "$branch" --title 'docs: refresh generated project cover' --body-file "$body_file")"
           fi
-          gh workflow run ci.yml --ref "$branch" -f operation=verify
-          gh workflow run codeql.yml --ref "$branch"
+          pr_number="$(gh pr view "$pr_url" --json number --jq .number)"
+          node scripts/start-cover-checks.mjs "$pr_number"
           gh pr merge "$pr_url" --auto --squash
