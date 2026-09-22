@@ -26,7 +26,7 @@ try {
   const catalog = join(temporary, 'catalog.html')
   execFileSync(process.execPath, ['dist/bin.js', 'catalog', '--html', catalog], { cwd: root, stdio: 'inherit', timeout: 60_000 })
   browser = await chromium.launch()
-  const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1, reducedMotion: 'reduce' })
+  const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 4, reducedMotion: 'reduce' })
   const errors = []
   page.on('pageerror', (error) => errors.push(error.message))
   await page.route(/^https?:/, (route) => route.abort())
