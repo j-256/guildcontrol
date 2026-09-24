@@ -302,12 +302,12 @@ const EXPECTED_ACTION_PINS = new Map([
   ["actions/download-artifact", "3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c"],
   ["actions/setup-node", "820762786026740c76f36085b0efc47a31fe5020"],
   ["actions/upload-artifact", "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a"],
-  ["docker/build-push-action", "53b7df96c91f9c12dcc8a07bcb9ccacbed38856a"],
+  ["docker/build-push-action", "c3c9e263c25d99ce0380d002d59b67737d91b0dc"],
   ["docker/login-action", "dbcb813823bdd20940b903addbd779551569679f"],
-  ["docker/setup-buildx-action", "37fe631027851001ddb9b187196cc803df7f5f0e"],
-  ["docker/setup-qemu-action", "1f40c72289eff860ee54a304f1438e3cff362e0a"],
-  ["github/codeql-action/analyze", "cdf488f595d80d6e07e03d4674febd5ab45fa938"],
-  ["github/codeql-action/init", "cdf488f595d80d6e07e03d4674febd5ab45fa938"],
+  ["docker/setup-buildx-action", "f87e5991a6d7451dcb8d9637bfbc97413f497069"],
+  ["docker/setup-qemu-action", "99012661954931238ded8c8b007157a8430204e1"],
+  ["github/codeql-action/analyze", "b96794f015dfd88f77b49b1c93e0fa7110f94c63"],
+  ["github/codeql-action/init", "b96794f015dfd88f77b49b1c93e0fa7110f94c63"],
 ])
 
 function assertEqual(actual, expected, message) {
