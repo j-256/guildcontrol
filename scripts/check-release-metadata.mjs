@@ -99,10 +99,10 @@ const EXPECTED_DEPENDENCIES = {
   "@opentelemetry/resources": "2.11.0",
   "@opentelemetry/sdk-metrics": "2.11.0",
   "@opentelemetry/sdk-trace": "2.11.0",
-  zod: "4.5.4",
+  zod: "4.6.5",
 }
 const EXPECTED_DEV_DEPENDENCIES = {
-  "@types/node": "26.4.1",
+  "@types/node": "26.6.1",
   ajv: "8.20.0",
   "ajv-formats": "3.0.1",
   esbuild: "0.28.2",
