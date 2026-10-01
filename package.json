@@ -78,7 +78,7 @@
     "version:prepare": "node scripts/prepare-version.mjs"
   },
   "dependencies": {
-    "@modelcontextprotocol/client": "2.0.0",
+    "@modelcontextprotocol/client": "2.1.0",
     "@modelcontextprotocol/server": "2.0.0",
     "@opentelemetry/api": "1.9.1",
     "@opentelemetry/context-async-hooks": "2.11.0",
