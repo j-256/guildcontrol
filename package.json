@@ -78,8 +78,8 @@
     "version:prepare": "node scripts/prepare-version.mjs"
   },
   "dependencies": {
-    "@modelcontextprotocol/client": "2.0.0",
-    "@modelcontextprotocol/server": "2.0.0",
+    "@modelcontextprotocol/client": "2.1.0",
+    "@modelcontextprotocol/server": "2.1.0",
     "@opentelemetry/api": "1.9.1",
     "@opentelemetry/context-async-hooks": "2.11.0",
     "@opentelemetry/exporter-metrics-otlp-proto": "0.222.0",
@@ -91,12 +91,12 @@
     "zod": "4.6.5"
   },
   "devDependencies": {
-    "@types/node": "26.6.1",
+    "@types/node": "26.6.2",
     "ajv": "8.20.0",
     "ajv-formats": "3.0.1",
     "esbuild": "0.28.2",
     "fflate": "0.8.3",
-    "tsx": "4.23.13",
+    "tsx": "4.23.15",
     "typescript": "7.0.2"
   },
   "allowScripts": {
