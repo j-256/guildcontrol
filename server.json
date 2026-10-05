@@ -124,7 +124,7 @@
     {
       "registryType": "mcpb",
       "identifier": "https://github.com/j-256/guildcontrol/releases/download/v2.3.0/guildcontrol-2.3.0.mcpb",
-      "fileSha256": "81c73f659ddc69ab47b4b7a16862d58e675bd424f1da8df55fa3d7f7868835ed",
+      "fileSha256": "c371601279a52401290d83680bf99532dcce28aaf97798c2a78e31e874fc855a",
       "transport": {
         "type": "stdio"
       }
