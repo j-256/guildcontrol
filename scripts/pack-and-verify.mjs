@@ -130,12 +130,13 @@ const EXPECTED_HOST_ADAPTERS = [
   "mcp-json",
 ]
 const EXPECTED_MIGRATION_SOURCES = [
-  "cappyeo@0.27.1",
+  "cappyeo@0.31.1",
   "hypark@0.1.1",
   "jaimen-bell@0.1.1",
   "oratorian@1.1.4",
   "pasympa@2.2.0",
   "targeted-reader@1.0.0",
+  "willuhm@1.1.1",
 ]
 const EXPECTED_MIGRATION_EXECUTION = Object.freeze({
   activityRecordsCreated: false,

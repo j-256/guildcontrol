@@ -19,12 +19,13 @@ The catalog contains these immutable source IDs:
 
 | Source ID | Audit basis | Baseline |
 | --- | --- | --- |
-| `cappyeo@0.27.1` | Public version tag resolved to a commit-pinned source snapshot | `channel-reader` |
+| `cappyeo@0.31.1` | Public version tag resolved to a commit-pinned source snapshot | `channel-reader` |
 | `hypark@0.1.1` | Public version tag resolved to a commit-pinned source snapshot | `channel-reader` |
 | `jaimen-bell@0.1.1` | Exact PyPI release and matching commit-pinned public source without a source tag | `server-observer` |
 | `oratorian@1.1.4` | Public version tag resolved to a commit-pinned source snapshot | `channel-reader` |
 | `pasympa@2.2.0` | Public version tag resolved to a commit-pinned source snapshot | `channel-reader` |
 | `targeted-reader@1.0.0` | Version-matching commit-pinned public source without a source tag or installable Registry package | `channel-reader` |
+| `willuhm@1.1.1` | Public version tag resolved to a commit-pinned source snapshot | `channel-reader` |
 
 Each entry includes its Registry identity, commit-pinned evidence URL, audit fidelity, complete source-tool inventory digest, mapping summary, limitations, and manifest digest. Untagged evidence stays visibly weaker; the planner does not turn a version-matching public source snapshot into a tagged-source claim.
 
@@ -33,7 +34,7 @@ Each entry includes its Registry identity, commit-pinned evidence URL, audit fid
 Choose the source ID shown by `migrate list`:
 
 ```bash
-guildctl migrate plan cappyeo@0.27.1
+guildctl migrate plan cappyeo@0.31.1
 ```
 
 The terminal report accounts for every audited source tool exactly once. Each outcome group includes:
@@ -50,7 +51,7 @@ The report also binds the source manifest and complete inventory to the negotiat
 Add `--json` for deterministic machine-readable evidence:
 
 ```bash
-guildctl migrate plan cappyeo@0.27.1 --json
+guildctl migrate plan cappyeo@0.31.1 --json
 ```
 
 JSON is suitable for review automation, but it is not a generated policy. `configurationImported`, `argumentsTranslated`, and `hostSettingsChanged` remain `false`.
@@ -60,7 +61,7 @@ JSON is suitable for review automation, but it is not a generated policy. `confi
 Add `--html FILE` to create a standalone guide without replacing an existing file:
 
 ```bash
-guildctl migrate plan cappyeo@0.27.1 --html ./cappyeo-migration.html
+guildctl migrate plan cappyeo@0.31.1 --html ./cappyeo-migration.html
 ```
 
 The file is created exclusively with mode `0600`. It contains the exact plan, source and target evidence, searchable outcome cards, disposition filters, tool-level accounting, copyable commands, visible limitations, and an in-memory checklist. It loads no external asset, makes no automatic request, persists no browser state, and embeds neither the output path nor a credential value. Activating a source or Registry evidence link is an explicit browser navigation.
