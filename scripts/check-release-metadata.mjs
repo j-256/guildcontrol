@@ -89,8 +89,8 @@ const STABLE_SEMVER = /^[0-9]+\.[0-9]+\.[0-9]+$/
 const FULL_COMMIT_SHA = /^[0-9a-f]{40}$/
 const ABSOLUTE_HTTPS_REFERENCE = /\bhttps:\/\/[^\s<>"'`]+/gu
 const EXPECTED_DEPENDENCIES = {
-  "@modelcontextprotocol/client": "2.0.0",
-  "@modelcontextprotocol/server": "2.0.0",
+  "@modelcontextprotocol/client": "2.1.0",
+  "@modelcontextprotocol/server": "2.1.0",
   "@opentelemetry/api": "1.9.1",
   "@opentelemetry/context-async-hooks": "2.11.0",
   "@opentelemetry/exporter-metrics-otlp-proto": "0.222.0",
@@ -102,12 +102,12 @@ const EXPECTED_DEPENDENCIES = {
   zod: "4.6.5",
 }
 const EXPECTED_DEV_DEPENDENCIES = {
-  "@types/node": "26.6.1",
+  "@types/node": "26.6.2",
   ajv: "8.20.0",
   "ajv-formats": "3.0.1",
   esbuild: "0.28.2",
   fflate: "0.8.3",
-  tsx: "4.23.13",
+  tsx: "4.23.15",
   typescript: "7.0.2",
 }
 const EXPECTED_SITE_DEV_DEPENDENCIES = {
@@ -306,8 +306,8 @@ const EXPECTED_ACTION_PINS = new Map([
   ["docker/login-action", "dbcb813823bdd20940b903addbd779551569679f"],
   ["docker/setup-buildx-action", "f87e5991a6d7451dcb8d9637bfbc97413f497069"],
   ["docker/setup-qemu-action", "99012661954931238ded8c8b007157a8430204e1"],
-  ["github/codeql-action/analyze", "b96794f015dfd88f77b49b1c93e0fa7110f94c63"],
-  ["github/codeql-action/init", "b96794f015dfd88f77b49b1c93e0fa7110f94c63"],
+  ["github/codeql-action/analyze", "2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2"],
+  ["github/codeql-action/init", "2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2"],
 ])
 
 function assertEqual(actual, expected, message) {
