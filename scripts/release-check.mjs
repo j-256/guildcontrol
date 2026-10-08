@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto"
-import { mkdtemp, rm } from "node:fs/promises"
+import { mkdtemp, rm, writeFile } from "node:fs/promises"
 import { join } from "node:path"
 
 import { BUILDKIT_IMAGE } from "./oci-registry.mjs"
@@ -8,6 +8,8 @@ import { REPOSITORY_ROOT, run } from "./release-lib.mjs"
 const PINNED_BUILDER = Symbol("pinned-builder")
 const SHARED_TEMP_DIRECTORY = await mkdtemp(join(REPOSITORY_ROOT, ".release-tmp-"))
 const SBOM_OUTPUT = join(SHARED_TEMP_DIRECTORY, "sbom.spdx.json")
+const BUILDER_CONFIGURATION = join(SHARED_TEMP_DIRECTORY, "buildkitd.toml")
+const BUILD_PARALLELISM = 1
 
 const CONTAINER_ENVIRONMENT = Object.freeze({
   ...process.env,
@@ -32,6 +34,8 @@ const RELEASE_CHECKS = Object.freeze([
 
 async function runWithPinnedBuilder(command, arguments_, environment) {
   const builderName = `guildcontrol-release-${process.pid}-${randomUUID()}`
+  // Serialize compiler-heavy platform builds on memory-limited local Docker hosts
+  await writeFile(BUILDER_CONFIGURATION, `[worker.oci]\n  max-parallelism = ${BUILD_PARALLELISM}\n`)
   await run("docker", [
     "buildx",
     "create",
@@ -41,6 +45,8 @@ async function runWithPinnedBuilder(command, arguments_, environment) {
     "docker-container",
     "--driver-opt",
     `image=${BUILDKIT_IMAGE}`,
+    "--buildkitd-config",
+    BUILDER_CONFIGURATION,
   ], { capture: true })
   try {
     await run(command, arguments_, {
