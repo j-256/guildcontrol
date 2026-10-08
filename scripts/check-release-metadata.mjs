@@ -89,8 +89,8 @@ const STABLE_SEMVER = /^[0-9]+\.[0-9]+\.[0-9]+$/
 const FULL_COMMIT_SHA = /^[0-9a-f]{40}$/
 const ABSOLUTE_HTTPS_REFERENCE = /\bhttps:\/\/[^\s<>"'`]+/gu
 const EXPECTED_DEPENDENCIES = {
-  "@modelcontextprotocol/client": "2.1.0",
-  "@modelcontextprotocol/server": "2.1.0",
+  "@modelcontextprotocol/client": "2.2.0",
+  "@modelcontextprotocol/server": "2.2.0",
   "@opentelemetry/api": "1.9.1",
   "@opentelemetry/context-async-hooks": "2.11.0",
   "@opentelemetry/exporter-metrics-otlp-proto": "0.222.0",
@@ -102,7 +102,7 @@ const EXPECTED_DEPENDENCIES = {
   zod: "4.6.5",
 }
 const EXPECTED_DEV_DEPENDENCIES = {
-  "@types/node": "26.6.2",
+  "@types/node": "26.6.3",
   ajv: "8.20.0",
   "ajv-formats": "3.0.1",
   esbuild: "0.28.2",

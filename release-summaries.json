@@ -35,5 +35,16 @@
       "Update runtime and documentation dependencies and improve documentation discovery and generated cover checks",
       "Verify clean EOF shutdown in installed npm and MCPB distributions"
     ]
+  },
+  "2.3.1": {
+    "version": "2.3.1",
+    "paragraphs": [
+      "GuildControl updates its MCP dependencies and patches documentation build dependencies. Release preparation can verify a reviewed source repair on its exact task commit before protected integration and publication."
+    ],
+    "highlights": [
+      "Update MCP client and server dependencies to the patched release",
+      "Patch documentation image, source map, TOML, and selector dependencies",
+      "Prepare source repairs with exact commit and integration-base checks, complete release verification, and rollback on failure"
+    ]
   }
 }

@@ -9,6 +9,7 @@ import {
   parseArguments,
   sourceDateEpoch,
   validateReleaseSummary,
+  validatePreparationCheckout,
   validateVersionFrontier,
 } from "../scripts/prepare-version.mjs"
 
@@ -71,6 +72,43 @@ test("compares stable versions numerically", () => {
   assert.ok(compareVersions("2.0.0", "1.99.99") > 0)
   assert.ok(compareVersions("2.2.0", "2.1.99") > 0)
   assert.equal(compareVersions("2.2.0", "2.2.0"), 0)
+})
+
+test("candidate preparation requires the exact reviewed head on a task branch including the fresh base", () => {
+  const request = {
+    branch: "security-update",
+    localRevision: "a".repeat(40),
+    remoteRevision: "b".repeat(40),
+    candidateHead: "a".repeat(40),
+    includesBase: true,
+  }
+  assert.doesNotThrow(() => validatePreparationCheckout(request))
+  assert.throws(() => validatePreparationCheckout({ ...request, branch: "" }), /named task branch/)
+  assert.throws(() => validatePreparationCheckout({ ...request, branch: "main" }), /named task branch/)
+  assert.throws(() => validatePreparationCheckout({ ...request, localRevision: "c".repeat(40) }), /reviewed commit/)
+  assert.throws(() => validatePreparationCheckout({ ...request, includesBase: false }), /freshly fetched/)
+  assert.throws(() => validatePreparationCheckout({ ...request, candidateHead: undefined }), /requires main/)
+  assert.throws(() => validatePreparationCheckout({ ...request, candidateHead: undefined, branch: "main" }), /must match/)
+  assert.doesNotThrow(() => validatePreparationCheckout({ ...request, candidateHead: undefined, branch: "main", localRevision: request.remoteRevision }))
+})
+
+test("parses only an exact and unique candidate preparation commit", () => {
+  const args = ["2.2.0", "--source-date", "2026-09-03", "--release-summary", "summary.json"]
+  assert.equal(parseArguments([...args, "--candidate-head", "a".repeat(40)]).candidateHead, "a".repeat(40))
+  assert.throws(() => parseArguments([...args, "--candidate-head"]), /full lowercase commit SHA/)
+  assert.throws(() => parseArguments([...args, "--candidate-head", "HEAD"]), /full lowercase commit SHA/)
+  assert.throws(() => parseArguments([...args, "--candidate-head", "a".repeat(40), "--candidate-head", "a".repeat(40)]), /Duplicate option/)
+  assert.equal(parseArguments(["--source-date=2026-09-03", "--release-summary=summary.json", `--candidate-head=${"a".repeat(40)}`, "--", "2.2.0"]).candidateHead, "a".repeat(40))
+  assert.throws(() => parseArguments([...args, "--candidate-head="]), /full lowercase commit SHA/)
+})
+
+test("both help flags describe candidate safety without preparing a version", () => {
+  for (const flag of ["-h", "--help"]) {
+    const output = execFileSync(process.execPath, ["scripts/prepare-version.mjs", flag], { encoding: "utf8" })
+    assert.match(output, /--candidate-head SHA/)
+    assert.match(output, /without publishing/)
+    assert.match(output, /Exit 0/)
+  }
 })
 
 test("accepts only exact UTC day boundaries", () => {
