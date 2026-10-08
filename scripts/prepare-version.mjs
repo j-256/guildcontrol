@@ -12,6 +12,22 @@ import {
 } from "./release-lib.mjs"
 
 const RELEASE_BRANCH = "main"
+const COMMIT_SHA = /^[0-9a-f]{40}$/
+const HELP = `Usage: npm run version:prepare -- VERSION --source-date YYYY-MM-DD --release-summary FILE [--candidate-head SHA]
+
+Prepare one increasing stable MAJOR.MINOR.PATCH version without publishing it
+The summary JSON must contain version, paragraphs, and highlights; each list holds
+one to six trimmed single-line strings of at most 600 characters
+Default: clean main matching freshly fetched origin/main
+--candidate-head SHA: clean task branch at this exact lowercase 40-character
+commit, including freshly fetched origin/main; verify the prepared release fully
+-h, --help: show this help and exit successfully
+
+Requires Node.js >=22, npm, Git remote access, installed Docker with an active
+context, and network access for dependency, artifact, and container checks
+Uses the existing environment and Git/Docker authentication configuration
+Exit 0: preparation or help succeeded; exit 1: invalid request or verification failed
+`
 const RELEASE_SUMMARIES_FILE = "release-summaries.json"
 const STABLE_VERSION = /^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$/
 const UTC_DAY = /^(?<year>[0-9]{4})-(?<month>[0-9]{2})-(?<day>[0-9]{2})$/
@@ -99,10 +115,29 @@ export function validateReleaseSummary(summary, version) {
 }
 
 export function parseArguments(arguments_) {
+  let normalizeOptions = true
+  arguments_ = arguments_.flatMap((argument) => {
+    if (argument === "--") normalizeOptions = false
+    if (!normalizeOptions || !argument.startsWith("--") || !argument.includes("=")) return [argument]
+    const separator = argument.indexOf("=")
+    return [argument.slice(0, separator), argument.slice(separator + 1)]
+  })
   const options = { sourceDate: undefined, summaryPath: undefined, version: undefined }
+  let positionalOnly = false
   for (let index = 0; index < arguments_.length; index += 1) {
     const argument = arguments_[index]
-    if (argument === "--source-date" || argument === "--release-summary") {
+    if (!positionalOnly && argument === "--") {
+      positionalOnly = true
+      continue
+    }
+    if (!positionalOnly && argument === "--candidate-head") {
+      invariant(options.candidateHead === undefined, "Duplicate option --candidate-head")
+      const value = arguments_[++index]
+      invariant(COMMIT_SHA.test(value || ""), "Option --candidate-head requires a full lowercase commit SHA")
+      options.candidateHead = value
+      continue
+    }
+    if (!positionalOnly && (argument === "--source-date" || argument === "--release-summary")) {
       const value = arguments_[index + 1]
       invariant(value, `Option ${argument} requires a value`)
       index += 1
@@ -115,7 +150,7 @@ export function parseArguments(arguments_) {
       }
       continue
     }
-    invariant(!argument.startsWith("-"), `Unknown option ${argument}`)
+    invariant(positionalOnly || !argument.startsWith("-"), `Unknown option ${argument}`)
     invariant(options.version === undefined, `Unexpected argument ${argument}`)
     options.version = argument
   }
@@ -132,19 +167,39 @@ async function gitOutput(arguments_, allowedExitCodes = [0]) {
   return { code: result.code, value: result.stdout.trim() }
 }
 
-async function assertReleaseCheckout(targetVersion) {
+export function validatePreparationCheckout({ branch, localRevision, remoteRevision, candidateHead, includesBase }) {
+  if (candidateHead === undefined) {
+    invariant(branch === RELEASE_BRANCH, `Version preparation requires ${RELEASE_BRANCH}, not ${branch || "detached HEAD"}`)
+    invariant(localRevision === remoteRevision, `${RELEASE_BRANCH} must match origin/${RELEASE_BRANCH}`)
+    return
+  }
+  invariant(branch && branch !== RELEASE_BRANCH, "Candidate preparation requires a named task branch")
+  invariant(localRevision === candidateHead, "Candidate preparation head differs from the reviewed commit")
+  invariant(includesBase, "Candidate preparation must include freshly fetched origin/main")
+}
+
+async function assertReleaseCheckout(targetVersion, candidateHead) {
   const branch = await gitOutput(["branch", "--show-current"])
-  invariant(branch.value === RELEASE_BRANCH, `Version preparation requires ${RELEASE_BRANCH}, not ${branch.value || "detached HEAD"}`)
   const status = await gitOutput(["status", "--porcelain=v1", "--untracked-files=all"])
   invariant(status.value === "", "Version preparation requires a clean working tree")
   await run("git", ["fetch", "--quiet", "origin", RELEASE_BRANCH])
   const localRevision = await gitOutput(["rev-parse", "HEAD"])
   const remoteRevision = await gitOutput(["rev-parse", `refs/remotes/origin/${RELEASE_BRANCH}`])
-  invariant(localRevision.value === remoteRevision.value, `${RELEASE_BRANCH} must match origin/${RELEASE_BRANCH}`)
+  const ancestry = candidateHead === undefined ? undefined : await gitOutput(
+    ["merge-base", "--is-ancestor", remoteRevision.value, localRevision.value], [0, 1],
+  )
+  validatePreparationCheckout({
+    branch: branch.value,
+    localRevision: localRevision.value,
+    remoteRevision: remoteRevision.value,
+    candidateHead,
+    includesBase: ancestry?.code === 0,
+  })
   const localTag = await gitOutput(["rev-parse", "--verify", "--quiet", `refs/tags/v${targetVersion}`], [0, 1])
   invariant(localTag.code === 1, `Local tag v${targetVersion} already exists`)
   const remoteTag = await gitOutput(["ls-remote", "--exit-code", "--tags", "origin", `refs/tags/v${targetVersion}`], [0, 2])
   invariant(remoteTag.code === 2, `Remote tag v${targetVersion} already exists`)
+  return { sourceHead: localRevision.value, baseHead: remoteRevision.value }
 }
 
 export function validateVersionFrontier(actual, includesReleaseSummary) {
@@ -216,11 +271,18 @@ async function prepareVersion(options) {
     JSON.parse(await readFile(options.summaryPath, "utf8")),
     options.version,
   )
-  await assertReleaseCheckout(options.version)
+  const checkout = await assertReleaseCheckout(options.version, options.candidateHead)
   await assertVersionFrontier(currentVersion)
 
   process.stdout.write(`==> Verifying ${currentVersion} before version preparation\n`)
-  await run("npm", ["run", "release:check"])
+  if (options.candidateHead === undefined) {
+    await run("npm", ["run", "release:check"])
+  } else {
+    // Patched candidate bytes cannot match an already published version's MCPB digest
+    for (const command of ["metadata:check", "config:schema:check", "security:check"]) {
+      await run("npm", ["run", command])
+    }
+  }
 
   const snapshots = await snapshotMutatedFiles()
   try {
@@ -242,6 +304,11 @@ async function prepareVersion(options) {
 
     process.stdout.write(`==> Verifying prepared ${options.version}\n`)
     await run("npm", ["run", "release:check"])
+    const sourceHead = await gitOutput(["rev-parse", "HEAD"])
+    invariant(sourceHead.value === checkout.sourceHead, "Source commit changed during version preparation")
+    await run("git", ["fetch", "--quiet", "origin", RELEASE_BRANCH])
+    const baseHead = await gitOutput(["rev-parse", `refs/remotes/origin/${RELEASE_BRANCH}`])
+    invariant(baseHead.value === checkout.baseHead, "Integration base changed during version preparation; synchronize and verify again")
     await run("git", ["diff", "--check"])
   } catch (error) {
     await restoreMutatedFiles(snapshots)
@@ -252,8 +319,15 @@ async function prepareVersion(options) {
 }
 
 async function main() {
+  const arguments_ = process.argv.slice(2)
+  const endOfOptions = arguments_.indexOf("--")
+  const options = endOfOptions === -1 ? arguments_ : arguments_.slice(0, endOfOptions)
+  if (options.some((argument) => argument === "-h" || argument === "--help")) {
+    process.stdout.write(HELP)
+    return
+  }
   try {
-    await prepareVersion(parseArguments(process.argv.slice(2)))
+    await prepareVersion(parseArguments(arguments_))
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
     process.stderr.write(`version preparation: ${message}\n`)
