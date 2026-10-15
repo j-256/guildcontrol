@@ -89,20 +89,20 @@ const STABLE_SEMVER = /^[0-9]+\.[0-9]+\.[0-9]+$/
 const FULL_COMMIT_SHA = /^[0-9a-f]{40}$/
 const ABSOLUTE_HTTPS_REFERENCE = /\bhttps:\/\/[^\s<>"'`]+/gu
 const EXPECTED_DEPENDENCIES = {
-  "@modelcontextprotocol/client": "2.2.0",
-  "@modelcontextprotocol/server": "2.2.0",
+  "@modelcontextprotocol/client": "2.3.1",
+  "@modelcontextprotocol/server": "2.3.1",
   "@opentelemetry/api": "1.9.1",
-  "@opentelemetry/context-async-hooks": "2.11.0",
-  "@opentelemetry/exporter-metrics-otlp-proto": "0.222.0",
-  "@opentelemetry/exporter-trace-otlp-proto": "0.222.0",
-  "@opentelemetry/otlp-exporter-base": "0.222.0",
-  "@opentelemetry/resources": "2.11.0",
-  "@opentelemetry/sdk-metrics": "2.11.0",
-  "@opentelemetry/sdk-trace": "2.11.0",
+  "@opentelemetry/context-async-hooks": "2.12.0",
+  "@opentelemetry/exporter-metrics-otlp-proto": "0.223.0",
+  "@opentelemetry/exporter-trace-otlp-proto": "0.223.0",
+  "@opentelemetry/otlp-exporter-base": "0.223.0",
+  "@opentelemetry/resources": "2.12.0",
+  "@opentelemetry/sdk-metrics": "2.12.0",
+  "@opentelemetry/sdk-trace": "2.12.0",
   zod: "4.6.5",
 }
 const EXPECTED_DEV_DEPENDENCIES = {
-  "@types/node": "26.6.3",
+  "@types/node": "26.6.4",
   ajv: "8.20.0",
   "ajv-formats": "3.0.1",
   esbuild: "0.28.2",
@@ -299,15 +299,15 @@ const OCI_RUNTIME_ARGUMENTS = Object.freeze([
 const EXPECTED_ACTION_PINS = new Map([
   ["actions/attest", "1e69f48acb82d1966a394da916b4c1698aa569d6"],
   ["actions/checkout", "3d3c42e5aac5ba805825da76410c181273ba90b1"],
-  ["actions/download-artifact", "3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c"],
-  ["actions/setup-node", "820762786026740c76f36085b0efc47a31fe5020"],
-  ["actions/upload-artifact", "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a"],
+  ["actions/download-artifact", "9000827ccba6bdab643e8b6fd33ac0654aef8333"],
+  ["actions/setup-node", "949feb2413d6458794dcd2491c4babbbce0c15c1"],
+  ["actions/upload-artifact", "cf430e030ddbb5b0abf93d22962f4752f3646cd9"],
   ["docker/build-push-action", "c3c9e263c25d99ce0380d002d59b67737d91b0dc"],
   ["docker/login-action", "dbcb813823bdd20940b903addbd779551569679f"],
   ["docker/setup-buildx-action", "f87e5991a6d7451dcb8d9637bfbc97413f497069"],
   ["docker/setup-qemu-action", "99012661954931238ded8c8b007157a8430204e1"],
-  ["github/codeql-action/analyze", "2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2"],
-  ["github/codeql-action/init", "2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2"],
+  ["github/codeql-action/analyze", "24c54180a607b1449ed407dd24f251e4e9147c8d"],
+  ["github/codeql-action/init", "24c54180a607b1449ed407dd24f251e4e9147c8d"],
 ])
 
 function assertEqual(actual, expected, message) {
