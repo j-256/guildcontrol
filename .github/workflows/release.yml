@@ -179,7 +179,7 @@ jobs:
           subject-path: ${{ env.MCPB }}
           sbom-path: ${{ runner.temp }}/release/sbom.spdx.json
       - name: Retain candidate for review
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: release-evidence-${{ inputs.operation }}-${{ inputs.tag }}
           path: |
@@ -640,7 +640,7 @@ jobs:
           (cd "$download_dir" && sha256sum -c SHA256SUMS)
 
       - name: Retain immutable GitHub Release verification
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: github-release-verification-${{ inputs.tag }}
           path: |
@@ -654,7 +654,7 @@ jobs:
           retention-days: 14
       - name: Retain recovery source verification
         if: ${{ inputs.operation == 'github-release-recovery' }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: github-release-recovery-verification-${{ inputs.tag }}
           path: |
@@ -869,7 +869,7 @@ jobs:
             --format json > "$RUNNER_TEMP/provenance-attestation-verification.json"
 
       - name: Retain exact OCI evidence for review
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: image-evidence-${{ inputs.tag }}
           path: |
@@ -1014,7 +1014,7 @@ jobs:
           done
           cat "$RUNNER_TEMP/registry-state.json"
       - name: Retain registration verification
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: registry-verification-${{ inputs.tag }}
           path: |
