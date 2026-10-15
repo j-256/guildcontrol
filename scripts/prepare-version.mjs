@@ -53,6 +53,7 @@ const VERSION_MATCH_EXCEPTIONS = Object.freeze([
   // Pinned third-party releases and parser fixtures do not follow the package version
   "docs/comparison.md",
   "docs/migration.md",
+  "scripts/check-release-metadata.mjs",
   "scripts/pack-and-verify.mjs",
   "site/package-lock.json",
   "src/migration-manifests.ts",
