@@ -153,14 +153,17 @@ export function projectRegistryPage(value) {
   return Object.freeze({ nextCursor, records: Object.freeze(records) })
 }
 
-export async function loadCurrentRegistryPages(fetchPage) {
+export async function loadCurrentRegistryPages(fetchPage, verifiedSearchUrls = new Set()) {
   assert.equal(typeof fetchPage, "function", "MCP Registry page loader is invalid")
+  assert.ok(verifiedSearchUrls instanceof Set, "MCP Registry verified URL set is invalid")
   const pages = []
   const cursors = new Set()
   let cursor = null
   for (let pageNumber = 0; pageNumber < MAXIMUM_PAGES; pageNumber += 1) {
-    const page = projectRegistryPage(await fetchPage(registrySearchUrl(cursor)))
+    const url = registrySearchUrl(cursor)
+    const page = projectRegistryPage(await fetchPage(url))
     pages.push(page)
+    verifiedSearchUrls.add(url)
     if (page.nextCursor === null) return Object.freeze(pages)
     assert.ok(
       !cursors.has(page.nextCursor),

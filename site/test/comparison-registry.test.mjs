@@ -134,6 +134,29 @@ test("Registry pagination follows each bounded cursor exactly once", async () =>
   )
 })
 
+test("Registry loader records only successfully checked search URLs for link reuse", async () => {
+  const verifiedSearchUrls = new Set()
+  const searchUrl = registrySearchUrl()
+  const versionUrl = registryVersionUrl(COMPETITOR_ONE, VERSION_ONE)
+  await loadCurrentRegistryPages(async () => registryPage([
+    registryEntry(SELF_REGISTRY_NAME, "0.1.1"),
+    registryEntry(COMPETITOR_ONE, VERSION_ONE),
+  ]), verifiedSearchUrls)
+
+  assert.deepEqual([...verifiedSearchUrls], [searchUrl])
+  assert.deepEqual([searchUrl, versionUrl].filter((url) => !verifiedSearchUrls.has(url)), [versionUrl])
+
+  const failedSearchUrls = new Set()
+  await assert.rejects(
+    loadCurrentRegistryPages(async () => registryPage([{
+      ...registryEntry(COMPETITOR_ONE, VERSION_ONE),
+      _meta: { "io.modelcontextprotocol.registry/official": { isLatest: false } },
+    }]), failedSearchUrls),
+    /non-latest/u,
+  )
+  assert.deepEqual([...failedSearchUrls], [])
+})
+
 test("Registry projection rejects malformed, non-latest, and duplicate evidence", () => {
   assert.throws(() => projectRegistryPage(null), /response is invalid/u)
   assert.throws(

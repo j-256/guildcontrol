@@ -19,13 +19,15 @@ The catalog contains these immutable source IDs:
 
 | Source ID | Audit basis | Baseline |
 | --- | --- | --- |
-| `cappyeo@0.31.1` | Public version tag resolved to a commit-pinned source snapshot | `channel-reader` |
+| `cappyeo@0.32.0` | Public version tag resolved to a commit-pinned source snapshot | `channel-reader` |
 | `hypark@0.1.1` | Public version tag resolved to a commit-pinned source snapshot | `channel-reader` |
 | `jaimen-bell@0.1.1` | Exact PyPI release and matching commit-pinned public source without a source tag | `server-observer` |
 | `oratorian@1.1.4` | Public version tag resolved to a commit-pinned source snapshot | `channel-reader` |
 | `pasympa@2.2.0` | Public version tag resolved to a commit-pinned source snapshot | `channel-reader` |
 | `targeted-reader@1.0.0` | Version-matching commit-pinned public source without a source tag or installable Registry package | `channel-reader` |
 | `willuhm@1.1.1` | Public version tag resolved to a commit-pinned source snapshot | `channel-reader` |
+
+This table describes the catalog built from this source revision. An installed package may have a different catalog; use its `migrate list` output to select a supported ID.
 
 Each entry includes its Registry identity, commit-pinned evidence URL, audit fidelity, complete source-tool inventory digest, mapping summary, limitations, and manifest digest. Untagged evidence stays visibly weaker; the planner does not turn a version-matching public source snapshot into a tagged-source claim.
 
@@ -34,7 +36,7 @@ Each entry includes its Registry identity, commit-pinned evidence URL, audit fid
 Choose the source ID shown by `migrate list`:
 
 ```bash
-guildctl migrate plan cappyeo@0.31.1
+guildctl migrate plan cappyeo@0.32.0
 ```
 
 The terminal report accounts for every audited source tool exactly once. Each outcome group includes:
@@ -51,7 +53,7 @@ The report also binds the source manifest and complete inventory to the negotiat
 Add `--json` for deterministic machine-readable evidence:
 
 ```bash
-guildctl migrate plan cappyeo@0.31.1 --json
+guildctl migrate plan cappyeo@0.32.0 --json
 ```
 
 JSON is suitable for review automation, but it is not a generated policy. `configurationImported`, `argumentsTranslated`, and `hostSettingsChanged` remain `false`.
@@ -61,7 +63,7 @@ JSON is suitable for review automation, but it is not a generated policy. `confi
 Add `--html FILE` to create a standalone guide without replacing an existing file:
 
 ```bash
-guildctl migrate plan cappyeo@0.31.1 --html ./cappyeo-migration.html
+guildctl migrate plan cappyeo@0.32.0 --html ./cappyeo-migration.html
 ```
 
 The file is created exclusively with mode `0600`. It contains the exact plan, source and target evidence, searchable outcome cards, disposition filters, tool-level accounting, copyable commands, visible limitations, and an in-memory checklist. It loads no external asset, makes no automatic request, persists no browser state, and embeds neither the output path nor a credential value. Activating a source or Registry evidence link is an explicit browser navigation.
@@ -75,6 +77,10 @@ The file is created exclusively with mode `0600`. It contains the exact plan, so
 `review-required` means the outcome exists but its authority, input, result, or failure model materially changes. Immediate source writes commonly become a plan and execute pair with exact local scope, permission and hierarchy proof, signed approval, durable coordination, non-retry behavior, exact readback, and ambiguity quarantine. Review the named target tools and enable only the required recipe or workbench fields.
 
 Cappyeo's bundled component-template send maps to `compile_component_template` before the ordinary component-message lifecycle. Select one typed local template and supply its named fields, or rebuild a custom layout with `preview_component_layout`; never copy a source `vars` map, custom ID, remote-media URL, or raw component tree into the target request. A source link button may become only an explicit strict `cta` or callback-free `link-row`: inspect the complete normalized destination, add its exact canonical HTTPS origin to `scopes.componentLinkOrigins`, and retain the destination through review. A source custom-ID button has no mechanical mapping. Only when its intended outcome is one private bounded request may you replace it with a `request-row` label and optional style after separately configuring exact native Interaction guild, channel, and user scope and installing the managed command; the connector generates a new authenticated ID and never preserves the source callback route. Selects, modals, generic callbacks, and automatic actions remain intentionally excluded. Compilation sends nothing, inspects no policy, and grants no authority. Copy its exact returned `components` and reviewed notification IDs into `plan_component_message`, then retain the exact request through execution and verification.
+
+Cappyeo 0.32.0's `members_bulk_add_role` maps to the separately scoped `plan_bulk_member_role_change` and `execute_bulk_member_role_change` lifecycle. Select one exact role and 2-25 exact members per reviewed batch; use the single-member role workflow for one target, and split larger source batches only after reviewing each target set and the previous batch's terminal evidence. Source success counts and member IDs do not substitute for GuildControl's durable child checkpoints or fresh continuation plan.
+
+Cappyeo's `channels_modify` with `lock_permissions: true` can move a child and copy the destination category's overwrites in one PATCH. GuildControl maps an existing child's synchronization to `plan_channel_permission_sync` and `execute_channel_permission_sync` after complete review. A move to another category first needs the separate reviewed channel-placement workflow, followed by a fresh synchronization plan for the new live parent. Inspect the intermediate access state and do not treat the two reviewed changes as one atomic source operation.
 
 `intentionally-excluded` means no connector equivalent is offered. For example, connector-owned AI calls and unrelated third-party emoji search stay outside this model-neutral Discord boundary. Keep reasoning in the MCP host or selected model provider and send only the deliberate Discord operation to the connector.
 

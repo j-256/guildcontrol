@@ -81,12 +81,15 @@ async function verifyLink(url) {
 
 async function main() {
   const markdown = await readFile(COMPARISON_FILE, "utf8")
-  const queue = comparisonExternalLinks(markdown)
+  const links = comparisonExternalLinks(markdown)
   const classificationLinks = comparisonRegistryClassificationLinks(markdown)
-  const registryPages = await loadCurrentRegistryPages(fetchRegistryResponse)
+  const verifiedSearchUrls = new Set()
+  const registryPages = await loadCurrentRegistryPages(fetchRegistryResponse, verifiedSearchUrls)
   const competitors = collectCurrentRegistryCompetitors(registryPages)
   const coverage = assertComparisonRegistryCoverage(classificationLinks, competitors)
-  const total = queue.length
+  // The freshness read already verified these exact search URLs
+  const queue = links.filter((url) => !verifiedSearchUrls.has(url))
+  const total = links.length
   const failures = []
   const workers = Array.from({ length: Math.min(CONCURRENCY, total) }, async () => {
     while (queue.length > 0) {
