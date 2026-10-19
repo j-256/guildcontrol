@@ -8,11 +8,11 @@
     "source": "github",
     "id": "1334461127"
   },
-  "version": "2.3.1",
+  "version": "2.3.2",
   "websiteUrl": "https://docs.guildcontrol.lasers.app",
   "icons": [
     {
-      "src": "https://raw.githubusercontent.com/j-256/guildcontrol/v2.3.1/assets/guildcontrol-icon.png",
+      "src": "https://raw.githubusercontent.com/j-256/guildcontrol/v2.3.2/assets/guildcontrol-icon.png",
       "mimeType": "image/png",
       "sizes": [
         "1254x1254"
@@ -24,7 +24,7 @@
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "guildctl",
-      "version": "2.3.1",
+      "version": "2.3.2",
       "runtimeHint": "npx",
       "transport": {
         "type": "stdio"
@@ -59,7 +59,7 @@
     },
     {
       "registryType": "oci",
-      "identifier": "ghcr.io/j-256/guildcontrol:2.3.1",
+      "identifier": "ghcr.io/j-256/guildcontrol:2.3.2",
       "runtimeHint": "docker",
       "transport": {
         "type": "stdio"
@@ -123,8 +123,8 @@
     },
     {
       "registryType": "mcpb",
-      "identifier": "https://github.com/j-256/guildcontrol/releases/download/v2.3.1/guildcontrol-2.3.1.mcpb",
-      "fileSha256": "d8e35a28b1d15692123e99c91208464fb05e230d81b60de28b8e97730d7d7f92",
+      "identifier": "https://github.com/j-256/guildcontrol/releases/download/v2.3.2/guildcontrol-2.3.2.mcpb",
+      "fileSha256": "4606bb53ac5b6221b0fc9511ee3f1bc47ea04c65ada53ba8072d201c100bb5e4",
       "transport": {
         "type": "stdio"
       }

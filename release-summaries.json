@@ -46,5 +46,17 @@
       "Patch documentation image, source map, TOML, and selector dependencies",
       "Prepare source repairs with exact commit and integration-base checks, complete release verification, and rollback on failure"
     ]
+  },
+  "2.3.2": {
+    "version": "2.3.2",
+    "paragraphs": [
+      "GuildControl MCP 2.3.2 refreshes the audited Discord MCP comparison and preserves release-exact migration plans for source versions offered by previous published GuildControl releases.",
+      "Migration planning remains offline and advisory; it does not import source configuration, credentials, or host settings."
+    ],
+    "highlights": [
+      "Audit Cappyeo 0.32.0 in the latest scored comparison and update Registry evidence checks",
+      "Restore exact Cappyeo and PaSympa migration source versions previously offered by published GuildControl releases",
+      "Keep older source inventories and outcome guidance available when a newer competitor version becomes the comparison baseline"
+    ]
   }
 }
