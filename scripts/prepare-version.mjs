@@ -56,6 +56,8 @@ const VERSION_MATCH_EXCEPTIONS = Object.freeze([
   "scripts/check-release-metadata.mjs",
   "scripts/pack-and-verify.mjs",
   "site/package-lock.json",
+  "site/package.json",
+  "site/test/site.test.mjs",
   "src/migration-manifests.ts",
   "test/cli.test.ts",
   "test/migration-html.test.ts",

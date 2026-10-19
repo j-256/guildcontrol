@@ -27,6 +27,7 @@ test("accepts the tracked release frontier without rewriting pinned third-party 
   const includesSummary = summaries[version] !== undefined
 
   assert.doesNotThrow(() => validateVersionFrontier(paths, includesSummary))
+  assert.doesNotThrow(() => validateVersionFrontier([...paths, "site/package.json", "site/test/site.test.mjs"], includesSummary))
   assert.throws(
     () => validateVersionFrontier([...paths, "src/unreviewed-version.ts"], includesSummary),
     /unexpected src\/unreviewed-version\.ts/,
