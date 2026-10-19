@@ -13,6 +13,8 @@ import { inspectPublicOciImage } from "./oci-registry.mjs"
 
 const NPM_REGISTRY_ORIGIN = "https://registry.npmjs.org"
 const MCP_REGISTRY_ORIGIN = "https://registry.modelcontextprotocol.io"
+const PUBLIC_JSON_REQUEST_TIMEOUT_MS = 15_000
+const MCP_REGISTRY_REQUEST_TIMEOUT_MS = 60_000
 const EXPECTATIONS = new Set(["matching", "missing", "missing-or-matching"])
 const PACKAGE_EXPECTATIONS = new Set([...EXPECTATIONS, "matching-or-migration"])
 const OCI_EXPECTATIONS = new Set([...EXPECTATIONS, "unchecked"])
@@ -60,16 +62,24 @@ function parseArguments(args) {
   return options
 }
 
-async function requestJson(url) {
-  const response = await fetch(url, {
-    headers: { accept: "application/json" },
-    redirect: "error",
-    signal: AbortSignal.timeout(15_000),
-  })
+async function requestJson(url, label, timeoutMs = PUBLIC_JSON_REQUEST_TIMEOUT_MS) {
+  let response
+  try {
+    response = await fetch(url, {
+      headers: { accept: "application/json" },
+      redirect: "error",
+      signal: AbortSignal.timeout(timeoutMs),
+    })
+  } catch (error) {
+    if (error?.name === "TimeoutError") {
+      throw new Error(`${label} read timed out after ${timeoutMs} ms`, { cause: error })
+    }
+    throw error
+  }
   if (response.status === 404) return { state: "missing" }
-  invariant(response.ok, `${url.origin} returned HTTP ${response.status}`)
+  invariant(response.ok, `${label} returned HTTP ${response.status}`)
   const contentType = response.headers.get("content-type") || ""
-  invariant(contentType.includes("application/json"), `${url.origin} returned a non-JSON response`)
+  invariant(contentType.includes("application/json"), `${label} returned a non-JSON response`)
   return { state: "present", value: await response.json() }
 }
 
@@ -86,7 +96,7 @@ const revisionResult = await run("git", ["rev-parse", "HEAD"], { capture: true }
 const revision = revisionResult.stdout.trim()
 const localIntegrity = sha512Integrity(await readFile(options.tarball))
 const encodedPackage = encodeURIComponent(packageJson.name)
-const packageResponse = await requestJson(new URL(`/${encodedPackage}`, NPM_REGISTRY_ORIGIN))
+const packageResponse = await requestJson(new URL(`/${encodedPackage}`, NPM_REGISTRY_ORIGIN), "npm package")
 let packageState = "missing"
 if (packageResponse.state === "present") {
   invariant(packageResponse.value?.name === packageJson.name, "npm returned a mismatched package name")
@@ -109,7 +119,7 @@ if (packageResponse.state === "present") {
 }
 assertExpectation(packageState, options.expectPackage, "npm package")
 
-const npmResponse = await requestJson(new URL(`/${encodedPackage}/${packageJson.version}`, NPM_REGISTRY_ORIGIN))
+const npmResponse = await requestJson(new URL(`/${encodedPackage}/${packageJson.version}`, NPM_REGISTRY_ORIGIN), "npm version")
 let npmState = "missing"
 if (npmResponse.state === "present") {
   invariant(npmResponse.value?.name === packageJson.name, "npm returned a mismatched package name")
@@ -138,6 +148,8 @@ if (options.expectOci !== "unchecked") {
 const registryName = encodeURIComponent(server.name)
 const registryResponse = await requestJson(
   new URL(`/v0.1/servers/${registryName}/versions/${server.version}`, MCP_REGISTRY_ORIGIN),
+  "MCP Registry",
+  MCP_REGISTRY_REQUEST_TIMEOUT_MS,
 )
 let registryState = "missing"
 if (registryResponse.state === "present") {
