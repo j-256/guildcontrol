@@ -914,7 +914,7 @@ async function checkDocumentation(packageJson) {
   for (const required of [
     "## Supported source releases",
     "guildctl migrate list",
-    "guildctl migrate plan cappyeo@0.31.1",
+    "guildctl migrate plan cappyeo@0.32.0",
     "## Read the dispositions correctly",
     "## Follow the staged path",
     "## Configuration remains a clean break",

@@ -76,6 +76,20 @@ test("migration sources exactly cover the scored local competitor release table"
   assert.deepEqual(registryUrls, catalogUrls)
 })
 
+test("Cappyeo 0.32.0 bulk role grants map to reviewed target workflow", async () => {
+  const targetCatalog = await checkDiscordCatalog()
+  const plan = await createMigrationPlan("cappyeo@0.32.0", {
+    checkCatalog: async () => targetCatalog,
+  })
+  const members = plan.mappings.find(({ id }) => id === "members")
+
+  assert.equal(plan.source.id, "cappyeo@0.32.0")
+  assert.ok(members)
+  assert.ok(members.sourceTools.includes("members_bulk_add_role"))
+  assert.ok(members.targetTools.includes("plan_bulk_member_role_change"))
+  assert.ok(members.targetTools.includes("execute_bulk_member_role_change"))
+})
+
 test("every migration plan binds complete source accounting to the negotiated target catalog", async () => {
   const targetCatalog = await checkDiscordCatalog()
   const targetNames = new Set(targetCatalog.toolNames)
@@ -129,7 +143,7 @@ test("migration planning reads no ambient credential, source tree, configuration
       throw new Error("Migration planning attempted network access")
     }) as typeof fetch
 
-    const plan = await createMigrationPlan("cappyeo@0.31.1", {
+    const plan = await createMigrationPlan("cappyeo@0.32.0", {
       checkCatalog: async () => targetCatalog,
     })
     const text = JSON.stringify(plan)
@@ -146,7 +160,7 @@ test("migration planning reads no ambient credential, source tree, configuration
 })
 
 test("migration source selection is version-exact and rejects aliases, paths, and unknown releases", () => {
-  assert.equal(normalizeMigrationSourceId(" CAPPYEO@0.31.1 "), "cappyeo@0.31.1")
+  assert.equal(normalizeMigrationSourceId(" CAPPYEO@0.32.0 "), "cappyeo@0.32.0")
   assert.throws(() => normalizeMigrationSourceId("cappyeo"), /must be one of/u)
   assert.throws(() => normalizeMigrationSourceId("cappyeo@latest"), /must be one of/u)
   assert.throws(() => normalizeMigrationSourceId("./source-checkout"), /must be one of/u)

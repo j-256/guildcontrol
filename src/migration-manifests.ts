@@ -3,7 +3,7 @@ import type { McpToolName } from "./observability-catalog.js"
 import type { SetupPresetName } from "./setup-presets.js"
 
 export const MIGRATION_SOURCE_IDS = Object.freeze([
-  "cappyeo@0.31.1",
+  "cappyeo@0.32.0",
   "hypark@0.1.1",
   "jaimen-bell@0.1.1",
   "oratorian@1.1.4",
@@ -158,6 +158,7 @@ const CAPPYEO_TOOLS = Object.freeze([
   "mcp_pipeline",
   "members_add_role",
   "members_ban",
+  "members_bulk_add_role",
   "members_bulk_ban",
   "members_get",
   "members_get_ban",
@@ -760,12 +761,12 @@ const CAPPYEO_GROUPS = Object.freeze([
   {
     disposition: "review-required",
     id: "channels-and-threads",
-    instruction: "Start with channel-reader scope, then enable only the exact channel or thread workflow needed through the config workbench.",
+    instruction: "Start with channel-reader scope, then enable only the exact channel or thread workflow needed through the config workbench. A source move-and-sync requires separately reviewed placement and a fresh permission-sync plan for the resulting parent.",
     outcome: "Channel, forum, thread, permission, and typing operations",
     recipes: [],
     sourcePrefixes: ["channels_", "threads_"],
     targetTools: [...TARGET_CHANNEL_LIFECYCLE, "list_active_threads", "list_archived_threads", "get_thread_membership", "get_thread_state", "plan_thread_change", "execute_thread_change", "plan_forum_post", "execute_forum_post", "signal_command_processing"],
-    trustChange: "Raw mutations and free typing signals become exact-scope reviewed or command-bound operations.",
+    trustChange: "Raw mutations and free typing signals become exact-scope reviewed or command-bound operations. Direct category overwrite copying becomes a complete reviewed child-parent replacement with durable coordination and readback.",
   },
   {
     disposition: "review-required",
@@ -850,12 +851,12 @@ const CAPPYEO_GROUPS = Object.freeze([
   {
     disposition: "review-required",
     id: "members",
-    instruction: "Enable only the exact member read, moderation, role, nickname, or bulk workflow required.",
+    instruction: "Enable only the exact member read, moderation, role, nickname, or bulk workflow required. Route members_bulk_add_role through the separately scoped reviewed bulk member-role plan and execution.",
     outcome: "Member inspection and administration",
     recipes: ["incident-response"],
     sourcePrefixes: ["members_"],
     targetTools: TARGET_MEMBER_LIFECYCLE,
-    trustChange: "Immediate member mutations gain protected-user boundaries, complete hierarchy proof, review, and exact readback.",
+    trustChange: "Immediate member mutations, including sequential bulk role grants, gain protected-user boundaries, complete hierarchy and permission-impact proof, review, durable per-member checkpoints, and exact readback.",
   },
   {
     disposition: "review-required",
@@ -1351,17 +1352,17 @@ const TARGETED_READER_GROUPS = Object.freeze([
 export const MIGRATION_SOURCE_DEFINITIONS = Object.freeze([
   {
     auditFidelity: "tagged-source",
-    auditedInventoryDigest: "sha256:afb9eb9665b8b2bb7babe27703ae7925a4f5530f9142469a88d3cad124ef2323",
+    auditedInventoryDigest: "sha256:9b9b73235ed678c07252184c226356e04bcbe3948ce899c9eed14f03f9d6e70c",
     baselinePreset: "channel-reader",
-    evidenceUrl: "https://github.com/cappyeo/discord-mcp/tree/7ed828f9979f261fbb3ce94c440a8f46c28b5716",
+    evidenceUrl: "https://github.com/cappyeo/discord-mcp/tree/44a5996ba32b3d4d456576771db6960c24a2c230",
     groups: CAPPYEO_GROUPS,
-    id: "cappyeo@0.31.1",
+    id: "cappyeo@0.32.0",
     limitations: ["The source release exposes optional HTTP, Gateway, embedded intelligence, and third-party integration modes that are not configuration-compatible with this local stdio connector."],
     product: "Cappyeo",
     registryName: "io.github.cappyeo/discord-mcp",
-    registryUrl: "https://registry.modelcontextprotocol.io/v0.1/servers/io.github.cappyeo%2Fdiscord-mcp/versions/0.31.1",
+    registryUrl: "https://registry.modelcontextprotocol.io/v0.1/servers/io.github.cappyeo%2Fdiscord-mcp/versions/0.32.0",
     sourceTools: CAPPYEO_TOOLS,
-    version: "0.31.1",
+    version: "0.32.0",
   },
   {
     auditFidelity: "tagged-source",
