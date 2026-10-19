@@ -58,5 +58,18 @@
       "Restore exact Cappyeo and PaSympa migration source versions previously offered by published GuildControl releases",
       "Keep older source inventories and outcome guidance available when a newer competitor version becomes the comparison baseline"
     ]
+  },
+  "2.3.3": {
+    "version": "2.3.3",
+    "paragraphs": [
+      "GuildControl MCP 2.3.3 refreshes the audited Discord MCP comparison and preserves release-exact migration plans for source versions offered by previous published GuildControl releases.",
+      "Migration planning remains offline and advisory; it does not import source configuration, credentials, or host settings. Release verification accommodates slow MCP Registry reads while preserving the existing publication checks."
+    ],
+    "highlights": [
+      "Audit Cappyeo 0.32.0 in the latest scored comparison and update Registry evidence checks",
+      "Restore exact Cappyeo and PaSympa migration source versions previously offered by published GuildControl releases",
+      "Keep older source inventories and outcome guidance available when a newer competitor version becomes the comparison baseline",
+      "Complete staged release verification when the MCP Registry responds slowly"
+    ]
   }
 }
