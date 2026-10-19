@@ -18,6 +18,20 @@ import {
 } from "../src/migration-planner.js"
 
 const AMBIENT_SECRET = "migration-planner-ambient-secret"
+const PUBLISHED_SOURCE_IDS = [
+  "cappyeo@0.25.0",
+  "cappyeo@0.26.0",
+  "cappyeo@0.27.1",
+  "cappyeo@0.31.1",
+  "cappyeo@0.32.0",
+  "hypark@0.1.1",
+  "jaimen-bell@0.1.1",
+  "oratorian@1.1.4",
+  "pasympa@2.1.1",
+  "pasympa@2.2.0",
+  "targeted-reader@1.0.0",
+  "willuhm@1.1.1",
+]
 
 test("migration catalog is deterministic, immutable, and accounts for every audited source tool", () => {
   const first = createMigrationCatalog()
@@ -28,7 +42,7 @@ test("migration catalog is deterministic, immutable, and accounts for every audi
   assert.match(first.catalogDigest, MIGRATION_DIGEST_PATTERN)
   assert.deepEqual(first.sources.map(({ id }) => id), [...MIGRATION_SOURCE_IDS])
   assert.equal(new Set(first.sources.map(({ manifestDigest }) => manifestDigest)).size, first.sources.length)
-  assert.equal(new Set(first.sources.map(({ sourceInventoryDigest }) => sourceInventoryDigest)).size, first.sources.length)
+  assert.deepEqual(first.sources.map(({ id }) => id), PUBLISHED_SOURCE_IDS)
   assert.equal(Object.isFrozen(first), true)
 
   for (const [index, source] of first.sources.entries()) {
@@ -60,7 +74,7 @@ test("migration catalog is deterministic, immutable, and accounts for every audi
   })
 })
 
-test("migration sources exactly cover the scored local competitor release table", async () => {
+test("migration sources cover the scored local competitor release table", async () => {
   const comparison = await readFile("docs/comparison.md", "utf8")
   const section = comparison
     .split("## Audited releases and source limits\n")[1]
@@ -73,7 +87,31 @@ test("migration sources exactly cover the scored local competitor release table"
     .map(({ registryUrl }) => registryUrl)
     .sort()
 
-  assert.deepEqual(registryUrls, catalogUrls)
+  for (const registryUrl of registryUrls) assert.ok(catalogUrls.includes(registryUrl), registryUrl)
+})
+
+test("published source releases retain exact version-specific tool inventories", async () => {
+  const targetCatalog = await checkDiscordCatalog()
+  const plans = new Map(await Promise.all(PUBLISHED_SOURCE_IDS.map(async (id) => [
+    id,
+    await createMigrationPlan(id, { checkCatalog: async () => targetCatalog }),
+  ] as const)))
+  const sourceTools = (id: string) => plans.get(id)?.mappings.flatMap(({ sourceTools }) => sourceTools) ?? []
+
+  for (const id of PUBLISHED_SOURCE_IDS) assert.equal(plans.get(id)?.source.id, id)
+  assert.deepEqual(sourceTools("cappyeo@0.25.0"), sourceTools("cappyeo@0.26.0"))
+  assert.deepEqual(sourceTools("cappyeo@0.26.0"), sourceTools("cappyeo@0.27.1"))
+  assert.equal(sourceTools("cappyeo@0.27.1").includes("workflow_start"), false)
+  assert.equal(sourceTools("cappyeo@0.31.1").includes("workflow_start"), true)
+  assert.equal(sourceTools("cappyeo@0.31.1").includes("members_bulk_add_role"), false)
+  assert.equal(sourceTools("cappyeo@0.32.0").includes("members_bulk_add_role"), true)
+  assert.equal(sourceTools("pasympa@2.1.1").includes("discord_search_guild_messages"), false)
+  assert.equal(sourceTools("pasympa@2.1.1").includes("discord_get_message_attachments"), false)
+  assert.equal(sourceTools("pasympa@2.2.0").includes("discord_search_guild_messages"), true)
+  assert.equal(sourceTools("pasympa@2.2.0").includes("discord_get_message_attachments"), true)
+  assert.equal(plans.get("cappyeo@0.27.1")?.mappings.find(({ id }) => id === "orchestration")?.outcome, "Intent planning and connector-owned tool pipelines")
+  assert.equal(plans.get("cappyeo@0.31.1")?.mappings.find(({ id }) => id === "members")?.instruction.includes("members_bulk_add_role"), false)
+  assert.equal(plans.get("pasympa@2.1.1")?.mappings.find(({ id }) => id === "messages-and-reactions")?.outcome.includes("attachments"), false)
 })
 
 test("Cappyeo 0.32.0 bulk role grants map to reviewed target workflow", async () => {
@@ -164,7 +202,7 @@ test("migration source selection is version-exact and rejects aliases, paths, an
   assert.throws(() => normalizeMigrationSourceId("cappyeo"), /must be one of/u)
   assert.throws(() => normalizeMigrationSourceId("cappyeo@latest"), /must be one of/u)
   assert.throws(() => normalizeMigrationSourceId("./source-checkout"), /must be one of/u)
-  assert.throws(() => normalizeMigrationSourceId("pasympa@2.1.1"), /must be one of/u)
+  assert.throws(() => normalizeMigrationSourceId("pasympa@2.0.0"), /must be one of/u)
 })
 
 test("migration plan verification rejects any post-plan mutation", async () => {

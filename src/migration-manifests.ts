@@ -3,10 +3,15 @@ import type { McpToolName } from "./observability-catalog.js"
 import type { SetupPresetName } from "./setup-presets.js"
 
 export const MIGRATION_SOURCE_IDS = Object.freeze([
+  "cappyeo@0.25.0",
+  "cappyeo@0.26.0",
+  "cappyeo@0.27.1",
+  "cappyeo@0.31.1",
   "cappyeo@0.32.0",
   "hypark@0.1.1",
   "jaimen-bell@0.1.1",
   "oratorian@1.1.4",
+  "pasympa@2.1.1",
   "pasympa@2.2.0",
   "targeted-reader@1.0.0",
   "willuhm@1.1.1",
@@ -267,6 +272,23 @@ const CAPPYEO_TOOLS = Object.freeze([
   "workflow_start",
   "workflow_status",
 ])
+
+const CAPPYEO_TOOLS_0311 = Object.freeze(CAPPYEO_TOOLS.filter((tool) => tool !== "members_bulk_add_role"))
+const CAPPYEO_0311_ADDITIONS = new Set([
+  "guild_change_apply",
+  "guild_change_plan",
+  "guild_change_restore",
+  "messages_compose",
+  "messages_context",
+  "messages_publish",
+  "messages_update",
+  "permissions_member_access_report",
+  "workflow_cancel",
+  "workflow_resume",
+  "workflow_start",
+  "workflow_status",
+])
+const CAPPYEO_TOOLS_EARLY = Object.freeze(CAPPYEO_TOOLS_0311.filter((tool) => !CAPPYEO_0311_ADDITIONS.has(tool)))
 
 const WILLUHM_TOOLS = Object.freeze([
   "add_reaction",
@@ -540,6 +562,9 @@ const PASYMPA_TOOLS = Object.freeze([
   "discord_update_forum_post",
   "discord_update_membership_screening",
 ])
+
+const PASYMPA_0220_ADDITIONS = new Set(["discord_get_message_attachments", "discord_search_guild_messages"])
+const PASYMPA_TOOLS_0211 = Object.freeze(PASYMPA_TOOLS.filter((tool) => !PASYMPA_0220_ADDITIONS.has(tool)))
 
 const HYPARK_TOOLS = Object.freeze([
   "discord_delete_own_message",
@@ -901,6 +926,28 @@ const CAPPYEO_GROUPS = Object.freeze([
   },
 ] as const satisfies readonly MigrationGroupDefinition[])
 
+const CAPPYEO_GROUPS_0311 = Object.freeze(CAPPYEO_GROUPS.map((group) => {
+  if (group.id === "channels-and-threads") return {
+    ...group,
+    instruction: "Start with channel-reader scope, then enable only the exact channel or thread workflow needed through the config workbench.",
+    trustChange: "Raw mutations and free typing signals become exact-scope reviewed or command-bound operations.",
+  }
+  if (group.id === "members") return {
+    ...group,
+    instruction: "Enable only the exact member read, moderation, role, nickname, or bulk workflow required.",
+    trustChange: "Immediate member mutations gain protected-user boundaries, complete hierarchy proof, review, and exact readback.",
+  }
+  return group
+}))
+
+const CAPPYEO_GROUPS_EARLY = Object.freeze(CAPPYEO_GROUPS_0311.map((group) => group.id === "orchestration" ? {
+  ...group,
+  instruction: "Replace connector-owned pipelines with host-side progressive discovery, prompts, and explicit tool calls.",
+  outcome: "Intent planning and connector-owned tool pipelines",
+  sourcePrefixes: [],
+  trustChange: "Planning remains visible to the MCP host instead of adding an opaque connector-side execution layer.",
+} : group))
+
 const WILLUHM_GROUPS = Object.freeze([
   {
     disposition: "review-required",
@@ -1167,6 +1214,14 @@ const PASYMPA_GROUPS = Object.freeze([
   },
 ] as const satisfies readonly MigrationGroupDefinition[])
 
+const PASYMPA_GROUPS_0211 = Object.freeze(PASYMPA_GROUPS.map((group) => group.id === "messages-and-reactions" ? {
+  ...group,
+  instruction: "Use channel-reader for reads, message-channel for plain sends or own-message edits, and channel-publisher for broader reaction, component, or embed outcomes; keep deletion, pins, forwarding, crossposts, and threads on their reviewed routes.",
+  outcome: "Messages, embeds, reactions, pins, forwarding, crossposts, and threads",
+  sourceNames: group.sourceNames.filter((name) => !PASYMPA_0220_ADDITIONS.has(name)),
+  trustChange: "Writes add exact channel policy, explicit mention handling, anti-spam controls, review where needed, and content-free receipts.",
+} : group))
+
 const HYPARK_GROUPS = Object.freeze([
   {
     disposition: "supported",
@@ -1352,6 +1407,62 @@ const TARGETED_READER_GROUPS = Object.freeze([
 export const MIGRATION_SOURCE_DEFINITIONS = Object.freeze([
   {
     auditFidelity: "tagged-source",
+    auditedInventoryDigest: "sha256:dab2107a16da8e9738281c2db287a13dadfff5d82abe8e796cd7bd8b9f166a92",
+    baselinePreset: "channel-reader",
+    evidenceUrl: "https://github.com/cappyeo/discord-mcp/tree/1d1390c44c58c8b8d6af6624f9b319e535475292",
+    groups: CAPPYEO_GROUPS_EARLY,
+    id: "cappyeo@0.25.0",
+    limitations: ["The source release exposes optional HTTP, Gateway, embedded intelligence, and third-party integration modes that are not configuration-compatible with this local stdio connector."],
+    product: "Cappyeo",
+    registryName: "io.github.cappyeo/discord-mcp",
+    registryUrl: "https://registry.modelcontextprotocol.io/v0.1/servers/io.github.cappyeo%2Fdiscord-mcp/versions/0.25.0",
+    sourceTools: CAPPYEO_TOOLS_EARLY,
+    version: "0.25.0",
+  },
+  {
+    auditFidelity: "tagged-source",
+    auditedInventoryDigest: "sha256:dab2107a16da8e9738281c2db287a13dadfff5d82abe8e796cd7bd8b9f166a92",
+    baselinePreset: "channel-reader",
+    evidenceUrl: "https://github.com/cappyeo/discord-mcp/tree/0bdf017fb33a6da17a9eed1b7d98f1952f300777",
+    groups: CAPPYEO_GROUPS_EARLY,
+    id: "cappyeo@0.26.0",
+    limitations: ["The source release exposes optional HTTP, Gateway, embedded intelligence, and third-party integration modes that are not configuration-compatible with this local stdio connector."],
+    product: "Cappyeo",
+    registryName: "io.github.cappyeo/discord-mcp",
+    registryUrl: "https://registry.modelcontextprotocol.io/v0.1/servers/io.github.cappyeo%2Fdiscord-mcp/versions/0.26.0",
+    sourceTools: CAPPYEO_TOOLS_EARLY,
+    version: "0.26.0",
+  },
+  {
+    auditFidelity: "tagged-source",
+    auditedInventoryDigest: "sha256:dab2107a16da8e9738281c2db287a13dadfff5d82abe8e796cd7bd8b9f166a92",
+    baselinePreset: "channel-reader",
+    evidenceUrl: "https://github.com/cappyeo/discord-mcp/tree/cfc1b5575fad7ec71695de3ea860bb0720cffd94",
+    groups: CAPPYEO_GROUPS_EARLY,
+    id: "cappyeo@0.27.1",
+    limitations: ["The source release exposes optional HTTP, Gateway, embedded intelligence, and third-party integration modes that are not configuration-compatible with this local stdio connector."],
+    product: "Cappyeo",
+    registryName: "io.github.cappyeo/discord-mcp",
+    registryUrl: "https://registry.modelcontextprotocol.io/v0.1/servers/io.github.cappyeo%2Fdiscord-mcp/versions/0.27.1",
+    sourceTools: CAPPYEO_TOOLS_EARLY,
+    version: "0.27.1",
+  },
+  {
+    auditFidelity: "tagged-source",
+    auditedInventoryDigest: "sha256:afb9eb9665b8b2bb7babe27703ae7925a4f5530f9142469a88d3cad124ef2323",
+    baselinePreset: "channel-reader",
+    evidenceUrl: "https://github.com/cappyeo/discord-mcp/tree/7ed828f9979f261fbb3ce94c440a8f46c28b5716",
+    groups: CAPPYEO_GROUPS_0311,
+    id: "cappyeo@0.31.1",
+    limitations: ["The source release exposes optional HTTP, Gateway, embedded intelligence, and third-party integration modes that are not configuration-compatible with this local stdio connector."],
+    product: "Cappyeo",
+    registryName: "io.github.cappyeo/discord-mcp",
+    registryUrl: "https://registry.modelcontextprotocol.io/v0.1/servers/io.github.cappyeo%2Fdiscord-mcp/versions/0.31.1",
+    sourceTools: CAPPYEO_TOOLS_0311,
+    version: "0.31.1",
+  },
+  {
+    auditFidelity: "tagged-source",
     auditedInventoryDigest: "sha256:9b9b73235ed678c07252184c226356e04bcbe3948ce899c9eed14f03f9d6e70c",
     baselinePreset: "channel-reader",
     evidenceUrl: "https://github.com/cappyeo/discord-mcp/tree/44a5996ba32b3d4d456576771db6960c24a2c230",
@@ -1405,6 +1516,20 @@ export const MIGRATION_SOURCE_DEFINITIONS = Object.freeze([
     registryUrl: "https://registry.modelcontextprotocol.io/v0.1/servers/io.github.Oratorian%2Fdiscord-node-mcp/versions/1.1.4",
     sourceTools: ORATORIAN_TOOLS,
     version: "1.1.4",
+  },
+  {
+    auditFidelity: "tagged-source",
+    auditedInventoryDigest: "sha256:e1815903bf78cff807d4269eaed6b000bb53e1f9e2173fed1144a8c4038c9f9e",
+    baselinePreset: "channel-reader",
+    evidenceUrl: "https://github.com/PaSympa/discord-mcp/tree/024655e7d82caca9a88b49cdb1e0ba584845f01d",
+    groups: PASYMPA_GROUPS_0211,
+    id: "pasympa@2.1.1",
+    limitations: ["The source release's broad environment-configured write surface is translated into separate exact-scope target workflows, not imported as one authority switch."],
+    product: "PaSympa",
+    registryName: "io.github.PaSympa/discord-mcp",
+    registryUrl: "https://registry.modelcontextprotocol.io/v0.1/servers/io.github.PaSympa%2Fdiscord-mcp/versions/2.1.1",
+    sourceTools: PASYMPA_TOOLS_0211,
+    version: "2.1.1",
   },
   {
     auditFidelity: "tagged-source",

@@ -2,7 +2,7 @@
 
 [Getting started](getting-started.md) | [Field comparison](comparison.md) | [Complete reference](reference.md) | [Privacy policy](../PRIVACY.md) | [Support](../SUPPORT.md)
 
-GuildControl MCP can produce a complete, release-exact switching plan for every competitor in the scored local comparison. The planner maps audited source tools into operator outcomes, then routes each outcome to this connector's least-privilege presets, additive recipes, exact target tools, and reviewed lifecycles.
+GuildControl MCP can produce a complete, release-exact switching plan for every competitor in the scored local comparison and retains the audited versions offered by previous published GuildControl releases. The planner maps audited source tools into operator outcomes, then routes each outcome to this connector's least-privilege presets, additive recipes, exact target tools, and reviewed lifecycles.
 
 It is deliberately a planner, not an importer. It does not scan another checkout, read an existing policy or MCP host file, resolve a credential, contact a network or Discord endpoint, rewrite prompts or arguments, or change anything. Source environment variables never become an alternate policy interface. The only environment value shown in staged commands is a non-secret reference to the bot-token variable selected by a new schema-v2 configuration file.
 
@@ -19,15 +19,20 @@ The catalog contains these immutable source IDs:
 
 | Source ID | Audit basis | Baseline |
 | --- | --- | --- |
+| `cappyeo@0.25.0` | Public version tag resolved to a commit-pinned source snapshot | `channel-reader` |
+| `cappyeo@0.26.0` | Public version tag resolved to a commit-pinned source snapshot | `channel-reader` |
+| `cappyeo@0.27.1` | Public version tag resolved to a commit-pinned source snapshot | `channel-reader` |
+| `cappyeo@0.31.1` | Public version tag resolved to a commit-pinned source snapshot | `channel-reader` |
 | `cappyeo@0.32.0` | Public version tag resolved to a commit-pinned source snapshot | `channel-reader` |
 | `hypark@0.1.1` | Public version tag resolved to a commit-pinned source snapshot | `channel-reader` |
 | `jaimen-bell@0.1.1` | Exact PyPI release and matching commit-pinned public source without a source tag | `server-observer` |
 | `oratorian@1.1.4` | Public version tag resolved to a commit-pinned source snapshot | `channel-reader` |
+| `pasympa@2.1.1` | Public version tag resolved to a commit-pinned source snapshot | `channel-reader` |
 | `pasympa@2.2.0` | Public version tag resolved to a commit-pinned source snapshot | `channel-reader` |
 | `targeted-reader@1.0.0` | Version-matching commit-pinned public source without a source tag or installable Registry package | `channel-reader` |
 | `willuhm@1.1.1` | Public version tag resolved to a commit-pinned source snapshot | `channel-reader` |
 
-This table describes the catalog built from this source revision. An installed package may have a different catalog; use its `migrate list` output to select a supported ID.
+This table describes the catalog built from this source revision. The [field comparison](comparison.md) scores the latest audited release of each competitor, while older rows here preserve release-exact planning for source versions offered by published GuildControl releases. An installed package may have a different catalog; use its `migrate list` output to select a supported ID.
 
 Each entry includes its Registry identity, commit-pinned evidence URL, audit fidelity, complete source-tool inventory digest, mapping summary, limitations, and manifest digest. Untagged evidence stays visibly weaker; the planner does not turn a version-matching public source snapshot into a tagged-source claim.
 
@@ -128,4 +133,4 @@ If setup or live verification fails, use the [recovery ladder](getting-started.m
 
 ## Evidence maintenance
 
-The [field comparison](comparison.md#migration-planning-head-to-head) records the released source that inspired this outcome and the remaining differences. Tests require the migration catalog to cover the exact Registry links in the scored local release table, require every source inventory to match its audited digest, and require every source tool to appear in one outcome group. A source release change must update the source audit, manifest, documentation, and comparison together.
+The [field comparison](comparison.md#migration-planning-head-to-head) scores the latest audited source releases and records the remaining differences. Tests require the migration catalog to cover every Registry link in the scored local release table, retain the source IDs offered by published GuildControl releases, match every source inventory to its audited digest, and assign every source tool to one outcome group. A newly audited source release needs a source audit, manifest, and documentation update. Update the scored comparison when that release becomes the latest audited version; keep older supported manifests available.
