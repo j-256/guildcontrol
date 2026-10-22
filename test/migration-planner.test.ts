@@ -24,6 +24,7 @@ const PUBLISHED_SOURCE_IDS = [
   "cappyeo@0.27.1",
   "cappyeo@0.31.1",
   "cappyeo@0.32.0",
+  "cappyeo@0.32.1",
   "hypark@0.1.1",
   "jaimen-bell@0.1.1",
   "oratorian@1.1.4",
@@ -105,6 +106,7 @@ test("published source releases retain exact version-specific tool inventories",
   assert.equal(sourceTools("cappyeo@0.31.1").includes("workflow_start"), true)
   assert.equal(sourceTools("cappyeo@0.31.1").includes("members_bulk_add_role"), false)
   assert.equal(sourceTools("cappyeo@0.32.0").includes("members_bulk_add_role"), true)
+  assert.deepEqual(sourceTools("cappyeo@0.32.1"), sourceTools("cappyeo@0.32.0"))
   assert.equal(sourceTools("pasympa@2.1.1").includes("discord_search_guild_messages"), false)
   assert.equal(sourceTools("pasympa@2.1.1").includes("discord_get_message_attachments"), false)
   assert.equal(sourceTools("pasympa@2.2.0").includes("discord_search_guild_messages"), true)

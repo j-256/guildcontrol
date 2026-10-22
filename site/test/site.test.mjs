@@ -115,7 +115,6 @@ test("documentation dependencies and install scripts are exact", async () => {
     .map(([path, candidate]) => `${path.replace(/^node_modules\//u, "")}@${candidate.version}`)
     .sort()
   assert.deepEqual(installScripts, [
-    "esbuild@0.28.2",
     "fsevents@2.3.2",
     "vite/node_modules/fsevents@2.3.3",
     "workerd@1.20260910.1",
@@ -123,7 +122,6 @@ test("documentation dependencies and install scripts are exact", async () => {
     "wrangler/node_modules/fsevents@2.3.3",
   ])
   assert.deepEqual(packageJson.allowScripts, {
-    "esbuild@0.28.2": true,
     "fsevents@2.3.2": false,
     "fsevents@2.3.3": false,
     "esbuild@0.28.1": true,
