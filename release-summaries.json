@@ -71,5 +71,18 @@
       "Keep older source inventories and outcome guidance available when a newer competitor version becomes the comparison baseline",
       "Complete staged release verification when the MCP Registry responds slowly"
     ]
+  },
+  "2.3.4": {
+    "version": "2.3.4",
+    "paragraphs": [
+      "GuildControl 2.3.4 refreshes its pinned Zod and Node.js type dependencies while preserving the existing Discord access and approval controls.",
+      "The CodeQL workflow uses reviewed v4.39.0 action commits, and release metadata checks recognize the updated dependency and action pins.",
+      "The documentation portal updates Astro and its Markdown peer to patched releases that clear the dependency security check."
+    ],
+    "highlights": [
+      "Refresh pinned validation and Node.js type dependencies.",
+      "Keep CodeQL analysis on reviewed action commits.",
+      "Update documentation tooling to patched Astro."
+    ]
   }
 }

@@ -99,10 +99,10 @@ const EXPECTED_DEPENDENCIES = {
   "@opentelemetry/resources": "2.12.0",
   "@opentelemetry/sdk-metrics": "2.12.0",
   "@opentelemetry/sdk-trace": "2.12.0",
-  zod: "4.6.5",
+  zod: "4.6.7",
 }
 const EXPECTED_DEV_DEPENDENCIES = {
-  "@types/node": "26.6.4",
+  "@types/node": "26.6.5",
   ajv: "8.20.0",
   "ajv-formats": "3.0.1",
   esbuild: "0.28.2",
@@ -112,10 +112,10 @@ const EXPECTED_DEV_DEPENDENCIES = {
 }
 const EXPECTED_SITE_DEV_DEPENDENCIES = {
   "@astrojs/check": "0.9.10",
-  "@astrojs/markdown-remark": "7.2.4",
+  "@astrojs/markdown-remark": "7.3.4",
   "@astrojs/starlight": "0.41.9",
   "@axe-core/playwright": "4.13.0",
-  astro: "7.2.9",
+  astro: "7.4.2",
   playwright: "1.62.1",
   typescript: "6.0.3",
   wrangler: "4.131.0",
@@ -128,7 +128,7 @@ const EXPECTED_SITE_SCRIPTS = {
   check: "npm run generate && astro check",
   deploy: "wrangler deploy",
   "deploy:dry-run": "wrangler deploy --dry-run --outdir .wrangler/dry-run",
-  "deps:locked": "npm ci --ignore-scripts && npm rebuild esbuild@0.28.2 esbuild@0.28.1 workerd@1.20260910.1 --ignore-scripts=false",
+  "deps:locked": "npm ci --ignore-scripts && npm rebuild esbuild@0.28.1 workerd@1.20260910.1 --ignore-scripts=false",
   dev: "npm run generate && astro dev",
   generate: "node scripts/generate.mjs",
   preview: "astro preview",
@@ -139,7 +139,7 @@ const EXPECTED_SITE_SCRIPTS = {
   verify: "npm run check && npm run build && npm test && npm run test:browser",
 }
 const EXPECTED_SITE_PRERELEASE_DEPENDENCIES = {
-  "node_modules/get-tsconfig": "5.0.0-beta.4",
+  "node_modules/get-tsconfig": "5.0.0-beta.6",
   "node_modules/miniflare": "5.20260910.0-alpha",
   "node_modules/unenv": "2.0.0-rc.24",
   "node_modules/youch": "4.1.0-beta.10",
@@ -306,8 +306,8 @@ const EXPECTED_ACTION_PINS = new Map([
   ["docker/login-action", "dbcb813823bdd20940b903addbd779551569679f"],
   ["docker/setup-buildx-action", "f87e5991a6d7451dcb8d9637bfbc97413f497069"],
   ["docker/setup-qemu-action", "99012661954931238ded8c8b007157a8430204e1"],
-  ["github/codeql-action/analyze", "24c54180a607b1449ed407dd24f251e4e9147c8d"],
-  ["github/codeql-action/init", "24c54180a607b1449ed407dd24f251e4e9147c8d"],
+  ["github/codeql-action/analyze", "6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee"],
+  ["github/codeql-action/init", "6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee"],
 ])
 
 function assertEqual(actual, expected, message) {
@@ -453,7 +453,6 @@ async function checkDocumentationPortal() {
   assertEqual(packageJson.devDependencies, EXPECTED_SITE_DEV_DEPENDENCIES, "documentation dependencies changed")
   assertEqual(packageJson.scripts, EXPECTED_SITE_SCRIPTS, "documentation scripts changed")
   assertEqual(packageJson.allowScripts, {
-    "esbuild@0.28.2": true,
     "fsevents@2.3.2": false,
     "fsevents@2.3.3": false,
     "esbuild@0.28.1": true,
@@ -478,7 +477,6 @@ async function checkDocumentationPortal() {
   assertEqual(
     installScripts,
     [
-      "esbuild@0.28.2",
       "fsevents@2.3.2",
       "vite/node_modules/fsevents@2.3.3",
       "workerd@1.20260910.1",
