@@ -99,10 +99,10 @@ const EXPECTED_DEPENDENCIES = {
   "@opentelemetry/resources": "2.12.0",
   "@opentelemetry/sdk-metrics": "2.12.0",
   "@opentelemetry/sdk-trace": "2.12.0",
-  zod: "4.6.5",
+  zod: "4.6.7",
 }
 const EXPECTED_DEV_DEPENDENCIES = {
-  "@types/node": "26.6.4",
+  "@types/node": "26.6.5",
   ajv: "8.20.0",
   "ajv-formats": "3.0.1",
   esbuild: "0.28.2",
@@ -306,8 +306,8 @@ const EXPECTED_ACTION_PINS = new Map([
   ["docker/login-action", "dbcb813823bdd20940b903addbd779551569679f"],
   ["docker/setup-buildx-action", "f87e5991a6d7451dcb8d9637bfbc97413f497069"],
   ["docker/setup-qemu-action", "99012661954931238ded8c8b007157a8430204e1"],
-  ["github/codeql-action/analyze", "24c54180a607b1449ed407dd24f251e4e9147c8d"],
-  ["github/codeql-action/init", "24c54180a607b1449ed407dd24f251e4e9147c8d"],
+  ["github/codeql-action/analyze", "6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee"],
+  ["github/codeql-action/init", "6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee"],
 ])
 
 function assertEqual(actual, expected, message) {
