@@ -23,7 +23,7 @@ Default: clean main matching freshly fetched origin/main
 commit, including freshly fetched origin/main; verify the prepared release fully
 -h, --help: show this help and exit successfully
 
-Requires Node.js >=22, npm, Git remote access, installed Docker with an active
+Requires Node.js >=22.15, npm, Git remote access, installed Docker with an active
 context, and network access for dependency, artifact, and container checks
 Uses the existing environment and Git/Docker authentication configuration
 Exit 0: preparation or help succeeded; exit 1: invalid request or verification failed

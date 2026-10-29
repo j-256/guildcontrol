@@ -84,5 +84,17 @@
       "Keep CodeQL analysis on reviewed action commits.",
       "Update documentation tooling to patched Astro."
     ]
+  },
+  "2.3.5": {
+    "version": "2.3.5",
+    "paragraphs": [
+      "GuildControl 2.3.5 upgrades its OpenTelemetry API, SDK, and OTLP exporters as a compatible dependency set.",
+      "The supported Node.js floor is 22.15, following the OpenTelemetry 3 migration requirement. Package metadata, bundled artifact identity, and setup documentation are aligned with that runtime floor."
+    ],
+    "highlights": [
+      "Upgrade OpenTelemetry SDK and exporters to the 3.x-compatible releases",
+      "Require Node.js 22.15 or newer for the application and MCPB bundle",
+      "Rebuild the versioned MCPB and bind its digest to the Registry manifest"
+    ]
   }
 }

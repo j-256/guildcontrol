@@ -162,7 +162,7 @@ export async function validateMcpbManifest(document, packageJson) {
   })
   assert.deepEqual(document.compatibility, {
     platforms: ["darwin", "win32", "linux"],
-    runtimes: { node: ">=22 <27" },
+    runtimes: { node: ">=22.15 <27" },
   })
   assert.deepEqual(document.user_config, {
     bot_token: {
