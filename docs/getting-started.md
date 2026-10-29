@@ -18,7 +18,7 @@ Before creating a token, use [product boundaries and host compatibility](limitat
 
 ## Before you begin
 
-You need Node.js 22 or newer and `Manage Server` authority in a Discord server you control. Enable Discord Developer Mode so the client can copy the target Server ID. The setup process needs temporary access to the bot token, but the token must stay in a secret-capable launcher, protected process environment, or mounted credential file.
+You need Node.js 22.15 or newer and `Manage Server` authority in a Discord server you control. Enable Discord Developer Mode so the client can copy the target Server ID. The setup process needs temporary access to the bot token, but the token must stay in a secret-capable launcher, protected process environment, or mounted credential file.
 
 Create the application and bot in the [Discord Developer Portal](https://discord.com/developers/applications), keep Public Bot disabled unless other people should be able to install it, and copy the public Application ID. Create or reset the bot token and put it directly in the secret facility you will use. The bot user ID is different and does not need to be copied; verified setup discovers and pins it.
 
@@ -219,7 +219,7 @@ After setup reports `ready`, use the one-click MCPB path when the host supports 
 3. Enter the token for your own bot only in the host's sensitive `Discord bot token` prompt.
 4. Review the resulting local server entry, reload the host, and continue with the first-read request below.
 
-The same bundle supports macOS, Windows, and Linux with Node.js 22 through 26. Its launcher reads the selected strict config, maps the prompted token only to the exact environment variable declared there, removes the bundle-only input, and starts the normal server. It does not persist the token or expose policy flags in the host form. A file-backed credential policy is deliberately refused because the sensitive prompt cannot satisfy that file-custody contract; use the generated adapter path instead.
+The same bundle supports macOS, Windows, and Linux with Node.js 22.15 through 26. Its launcher reads the selected strict config, maps the prompted token only to the exact environment variable declared there, removes the bundle-only input, and starts the normal server. It does not persist the token or expose policy flags in the host form. A file-backed credential policy is deliberately refused because the sensitive prompt cannot satisfy that file-custody contract; use the generated adapter path instead.
 
 The release workflow builds the bundle twice, requires identical bytes, validates every ZIP path, mode, timestamp, and entry, checks its embedded deterministic SPDX inventory, third-party notices, privacy policy, and credential-free catalog evidence, then unpacks it and completes a real MCP handshake. Verify the downloaded bundle against `SHA256SUMS` and its GitHub artifact attestation before import.
 
@@ -425,7 +425,7 @@ npx --yes guildctl@2.3.4 host --npx --config ./guildcontrol.json --adapter ADAPT
 - If offline doctor reports the credential unavailable, make the exact referenced environment variable or file available to that process. The connector has no fallback token source.
 - If online doctor fails identity or guild access, verify the token belongs to the intended application, reinstall the exact generated grant in the intended guild, and inspect role or channel overrides. Do not broaden to `Administrator`.
 - If smoke fails, correct its reported layer before editing the host. Smoke exercises the same stdio server entrypoint without a model or host dependency.
-- If MCPB import fails before startup, confirm that the host supports MCPB manifest 0.3, Node.js 22 through 26, local file selection, and sensitive string inputs. Do not copy the token into the selected config.
+- If MCPB import fails before startup, confirm that the host supports MCPB manifest 0.3, Node.js 22.15 through 26, local file selection, and sensitive string inputs. Do not copy the token into the selected config.
 - If MCPB startup reports that an environment-backed credential is required, keep a file-backed policy unchanged and use the generated host adapter. Do not convert the secret file into static JSON merely to satisfy the bundle.
 - If a host says the connection closed during initialization, run exact host-file inspection first. Fix only its named projection, reload the host, and require status 0 before chasing runtime causes. `dist/index.js` is the library entrypoint and does not run a server; a source checkout must use `node dist/bin.js serve --config FILE`.
 - If smoke passes but the host still fails, verify that the host forwards the referenced secret, uses stdio rather than a shell prompt or HTTP transport, allows the startup timeout, and was restarted after configuration changed.

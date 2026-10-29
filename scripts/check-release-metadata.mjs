@@ -91,14 +91,14 @@ const ABSOLUTE_HTTPS_REFERENCE = /\bhttps:\/\/[^\s<>"'`]+/gu
 const EXPECTED_DEPENDENCIES = {
   "@modelcontextprotocol/client": "2.3.1",
   "@modelcontextprotocol/server": "2.3.1",
-  "@opentelemetry/api": "1.9.1",
-  "@opentelemetry/context-async-hooks": "2.12.0",
-  "@opentelemetry/exporter-metrics-otlp-proto": "0.223.0",
-  "@opentelemetry/exporter-trace-otlp-proto": "0.223.0",
-  "@opentelemetry/otlp-exporter-base": "0.223.0",
-  "@opentelemetry/resources": "2.12.0",
-  "@opentelemetry/sdk-metrics": "2.12.0",
-  "@opentelemetry/sdk-trace": "2.12.0",
+  "@opentelemetry/api": "1.10.0",
+  "@opentelemetry/context-async-hooks": "3.0.0",
+  "@opentelemetry/exporter-metrics-otlp-proto": "0.300.0",
+  "@opentelemetry/exporter-trace-otlp-proto": "0.300.0",
+  "@opentelemetry/otlp-exporter-base": "0.300.0",
+  "@opentelemetry/resources": "3.0.0",
+  "@opentelemetry/sdk-metrics": "3.0.0",
+  "@opentelemetry/sdk-trace": "3.0.0",
   zod: "4.6.7",
 }
 const EXPECTED_DEV_DEPENDENCIES = {
@@ -333,7 +333,7 @@ async function checkPackageAndLock() {
   invariant(packageJson.author === "j-256", "package author is invalid")
   invariant(packageJson.mcpName === MCP_NAME, "package mcpName does not match the registry identity")
   invariant(packageJson.license === "AGPL-3.0-only", "package license does not match LICENSE")
-  invariant(packageJson.engines?.node === ">=22", "package Node.js floor must remain 22")
+  invariant(packageJson.engines?.node === ">=22.15", "package Node.js floor must remain 22.15")
   invariant(packageJson.main === "./dist/index.js", "package main entrypoint is invalid")
   invariant(packageJson.types === "./dist/index.d.ts", "package types entrypoint is invalid")
   invariant(packageJson.bin?.guildctl === "dist/bin.js", "package CLI entrypoint is invalid")
@@ -932,11 +932,11 @@ async function checkDocumentation(packageJson) {
   invariant(gettingStarted.includes("host plan"), "getting-started guide lacks reviewed host planning")
   invariant(gettingStarted.includes("host apply"), "getting-started guide lacks reviewed host application")
   invariant(gettingStarted.includes("`--standard-runtime`"), "getting-started guide lacks the standard-runtime recovery choice")
-  invariant(gettingStarted.includes("bundle supports macOS, Windows, and Linux with Node.js 22 through 26"), "getting-started guide lacks the exact MCPB runtime range")
+  invariant(gettingStarted.includes("bundle supports macOS, Windows, and Linux with Node.js 22.15 through 26"), "getting-started guide lacks the exact MCPB runtime range")
   invariant(reference.includes("[Product boundaries and host compatibility](limitations.md)"), "complete reference lacks the product-boundaries route")
   invariant(reference.includes("public CLI launcher is `dist/bin.js`"), "complete reference lacks the public package launcher")
   invariant(reference.includes("V8's `--lite-mode`"), "complete reference lacks the low-memory runtime contract")
-  invariant(reference.includes("cross-platform manifest requires Node.js 22 through 26"), "complete reference lacks the exact MCPB runtime range")
+  invariant(reference.includes("cross-platform manifest requires Node.js 22.15 through 26"), "complete reference lacks the exact MCPB runtime range")
   invariant(reference.includes("bundle verification rejects any other stderr"), "complete reference lacks the MCPB warning boundary")
   invariant(reference.includes("The `host` generation form requires one explicit `--config FILE` or `--profile NAME`"), "complete reference lacks the host activation contract")
   invariant(reference.includes("`guildcontrol.host-adapters.v1`"), "complete reference lacks verified host adapters")
@@ -1065,7 +1065,7 @@ async function checkCommunityFiles() {
   invariant(support.includes("[product boundaries and host compatibility](docs/limitations.md)"), "support guide lacks the product-boundaries route")
   invariant(support.includes("guildctl host --npx --config FILE --html PRIVATE_FILE"), "support guide lacks private host activation recovery")
   invariant(support.includes("node dist/bin.js serve --config FILE"), "support guide lacks the public source launcher")
-  invariant(support.includes("Node.js 22 through 26"), "support guide lacks the exact MCPB runtime range")
+  invariant(support.includes("Node.js 22.15 through 26"), "support guide lacks the exact MCPB runtime range")
   invariant(privacy.startsWith("# Privacy policy\n"), "privacy policy heading is invalid")
   for (const required of [
     "## Credentials",

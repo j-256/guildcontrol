@@ -56,7 +56,7 @@
       "linux"
     ],
     "runtimes": {
-      "node": ">=22 <27"
+      "node": ">=22.15 <27"
     }
   },
   "user_config": {

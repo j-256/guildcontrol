@@ -27,7 +27,7 @@ Use the [first verified read guide](docs/getting-started.md) for setup and recov
 
 ## Quick start
 
-The fastest supported outcome is an owner-managed read-only bot, one strict non-secret policy, one private host guide, and a successful channel inventory. You need Node.js 22 or newer, `Manage Server` authority in a Discord server you control, and a local stdio MCP host. GuildControl provides no shared bot, relay, or token store.
+The fastest supported outcome is an owner-managed read-only bot, one strict non-secret policy, one private host guide, and a successful channel inventory. You need Node.js 22.15 or newer, `Manage Server` authority in a Discord server you control, and a local stdio MCP host. GuildControl provides no shared bot, relay, or token store.
 
 ### Guided setup: start here
 

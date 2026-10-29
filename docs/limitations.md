@@ -62,7 +62,7 @@ MCPB compatibility is a host capability, not a universal MCP requirement. The pr
 | --- | --- | --- |
 | MCPB manifest 0.3, file selection, and sensitive string input | Required only for one-click import | Use the generated host adapter without changing the selected policy or placing a token in static JSON |
 | Local process execution over stdio | Required | The connector exposes no Streamable HTTP or hosted transport |
-| Node.js 22+ for npm or source and 22-26 for MCPB | Required | Use `smoke --config FILE` to separate package or stdio failure from host translation failure |
+| Node.js 22.15+ for npm or source and 22-26 for MCPB | Required | Use `smoke --config FILE` to separate package or stdio failure from host translation failure |
 | Direct access to the generated static JSON destination | Optional for exact drift inspection | Compare manually when the host stores an opaque database, generated runtime state, or another format; the connector never discovers or extracts it |
 | Forwarding the named environment secret or preserving access to a referenced private credential file | Required | Startup fails without falling back to another token or legacy policy source |
 | MCP initialization, `tools/list`, and `tools/call` | Required | The operational server cannot negotiate or expose its typed tools |
