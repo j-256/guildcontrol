@@ -306,8 +306,8 @@ const EXPECTED_ACTION_PINS = new Map([
   ["docker/login-action", "dbcb813823bdd20940b903addbd779551569679f"],
   ["docker/setup-buildx-action", "f87e5991a6d7451dcb8d9637bfbc97413f497069"],
   ["docker/setup-qemu-action", "99012661954931238ded8c8b007157a8430204e1"],
-  ["github/codeql-action/analyze", "6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee"],
-  ["github/codeql-action/init", "6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee"],
+  ["github/codeql-action/analyze", "9b3254085494b55a0f7c4c2b3d2d52cc712ce370"],
+  ["github/codeql-action/init", "9b3254085494b55a0f7c4c2b3d2d52cc712ce370"],
 ])
 
 function assertEqual(actual, expected, message) {
