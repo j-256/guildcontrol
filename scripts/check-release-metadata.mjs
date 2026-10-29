@@ -118,7 +118,7 @@ const EXPECTED_SITE_DEV_DEPENDENCIES = {
   astro: "7.4.2",
   playwright: "1.62.1",
   typescript: "6.0.3",
-  wrangler: "4.131.0",
+  wrangler: "4.155.0",
 }
 const EXPECTED_SITE_SCRIPTS = {
   "browser:install": "playwright install chromium",
@@ -128,7 +128,7 @@ const EXPECTED_SITE_SCRIPTS = {
   check: "npm run generate && astro check",
   deploy: "wrangler deploy",
   "deploy:dry-run": "wrangler deploy --dry-run --outdir .wrangler/dry-run",
-  "deps:locked": "npm ci --ignore-scripts && npm rebuild esbuild@0.28.1 workerd@1.20260910.1 --ignore-scripts=false",
+  "deps:locked": "npm ci --ignore-scripts && npm rebuild esbuild@0.28.2 workerd@1.20261023.1 --ignore-scripts=false",
   dev: "npm run generate && astro dev",
   generate: "node scripts/generate.mjs",
   preview: "astro preview",
@@ -140,7 +140,7 @@ const EXPECTED_SITE_SCRIPTS = {
 }
 const EXPECTED_SITE_PRERELEASE_DEPENDENCIES = {
   "node_modules/get-tsconfig": "5.0.0-beta.6",
-  "node_modules/miniflare": "5.20260910.0-alpha",
+  "node_modules/miniflare": "5.20261023.2-beta",
   "node_modules/unenv": "2.0.0-rc.24",
   "node_modules/youch": "4.1.0-beta.10",
 }
@@ -306,8 +306,8 @@ const EXPECTED_ACTION_PINS = new Map([
   ["docker/login-action", "dbcb813823bdd20940b903addbd779551569679f"],
   ["docker/setup-buildx-action", "f87e5991a6d7451dcb8d9637bfbc97413f497069"],
   ["docker/setup-qemu-action", "99012661954931238ded8c8b007157a8430204e1"],
-  ["github/codeql-action/analyze", "6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee"],
-  ["github/codeql-action/init", "6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee"],
+  ["github/codeql-action/analyze", "9b3254085494b55a0f7c4c2b3d2d52cc712ce370"],
+  ["github/codeql-action/init", "9b3254085494b55a0f7c4c2b3d2d52cc712ce370"],
 ])
 
 function assertEqual(actual, expected, message) {
@@ -455,8 +455,8 @@ async function checkDocumentationPortal() {
   assertEqual(packageJson.allowScripts, {
     "fsevents@2.3.2": false,
     "fsevents@2.3.3": false,
-    "esbuild@0.28.1": true,
-    "workerd@1.20260910.1": true,
+    "esbuild@0.28.2": true,
+    "workerd@1.20261023.1": true,
   }, "documentation install-script allowlist changed")
   assertPinnedDependencies(packageJson)
 
@@ -477,10 +477,10 @@ async function checkDocumentationPortal() {
   assertEqual(
     installScripts,
     [
+      "esbuild@0.28.2",
       "fsevents@2.3.2",
       "vite/node_modules/fsevents@2.3.3",
-      "workerd@1.20260910.1",
-      "wrangler/node_modules/esbuild@0.28.1",
+      "workerd@1.20261023.1",
       "wrangler/node_modules/fsevents@2.3.3",
     ],
     "documentation lockfile install-script packages changed",
