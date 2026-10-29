@@ -8,20 +8,22 @@ const EXECUTABLE = "/runtime/node"
 const LAUNCHER = "/package/dist/bin.js"
 const CLI = "/package/dist/cli.js"
 
-test("package bin replaces one eligible process before importing the CLI", async () => {
+test("package bin forwards its environment when replacing the process", async () => {
   const replacement = new Error("process replaced")
   let observed: {
     args: readonly string[] | undefined
     file: string
   } | undefined
   let cliCalled = false
+  let environmentForwarded = false
   await assert.rejects(runGuildControlBin({
     argv: [EXECUTABLE, LAUNCHER, "version"],
     cliEntrypoint: CLI,
     execArgv: [],
     execPath: EXECUTABLE,
-    execve(file, args) {
+    execve(file, args, environment) {
       observed = { args, file }
+      environmentForwarded = environment === process.env
       throw replacement
     },
     nodeVersion: "22.22.0",
@@ -31,6 +33,7 @@ test("package bin replaces one eligible process before importing the CLI", async
     },
   }), replacement)
   assert.equal(cliCalled, false)
+  assert.equal(environmentForwarded, true)
   assert.deepEqual(observed, {
     args: [EXECUTABLE, ...NODE_22_23_LOW_MEMORY_NODE_ARGUMENTS, CLI, "version"],
     file: EXECUTABLE,

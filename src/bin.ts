@@ -9,6 +9,7 @@ import { resolveNodeRuntime } from "./node-runtime.js"
 type ProcessReplacement = (
   file: string,
   args?: readonly string[],
+  environment?: NodeJS.ProcessEnv,
 ) => never
 
 export interface GuildControlBinOptions {
@@ -37,7 +38,7 @@ export async function runGuildControlBin(
     processReplacementAvailable: typeof execve === "function",
   })
   if (resolution.replacement && execve) {
-    execve(resolution.replacement.file, resolution.replacement.args)
+    execve(resolution.replacement.file, resolution.replacement.args, process.env)
   }
   const runCli = options.runCli ?? (async (args: readonly string[]) => {
     const { runCli: run } = await import("./cli.js")
