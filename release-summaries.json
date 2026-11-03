@@ -96,5 +96,14 @@
       "Require Node.js 22.15 or newer for the application and MCPB bundle",
       "Rebuild the versioned MCPB and bind its digest to the Registry manifest"
     ]
+  },
+  "2.3.6": {
+    "version": "2.3.6",
+    "paragraphs": [
+      "Refresh the source-backed Discord MCP Registry comparison. The field-wide lead claim is suspended until the newly registered comparable release receives a complete matrix and migration audit."
+    ],
+    "highlights": [
+      "Dated Registry coverage and external evidence links verified by the documentation gate"
+    ]
   }
 }
