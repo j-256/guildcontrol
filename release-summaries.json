@@ -105,5 +105,17 @@
     "highlights": [
       "Dated Registry coverage and external evidence links verified by the documentation gate"
     ]
+  },
+  "2.3.7": {
+    "version": "2.3.7",
+    "paragraphs": [
+      "Refresh reviewed MCP SDK and automation dependencies while preserving dependency review and artifact identity."
+    ],
+    "highlights": [
+      "Align the MCP SDK client and server updates.",
+      "Refresh reviewed Docker login and Node type pins.",
+      "Preserve the selected Docker connection during container verification.",
+      "Document dependency review and candidate artifact preparation."
+    ]
   }
 }
