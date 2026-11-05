@@ -18,6 +18,8 @@ npm run deps:locked
 
 Production dependencies are intentionally small and exactly pinned. Explain any dependency addition, the authority it gains during installation or runtime, its registry and integrity evidence, and why a native platform capability is insufficient.
 
+Dependabot updates are review candidates. Review upstream changes and registry integrity, then update the matching dependency versions or action commit in `scripts/check-release-metadata.mjs` alongside the package lockfile or workflow. Keep the MCP SDK client and server on the same reviewed version; Dependabot groups their updates. A metadata rejection preserves the reviewed dependency boundary and must not be bypassed. When an update changes MCPB bytes, follow the [candidate version preparation procedure](docs/releasing.md#prepare-a-version) before integration so the new artifact has its own version and digest.
+
 Keep the stdio transport, fixed-origin Discord client, policy, domain services, reviewed execution, durable coordination, activity evidence, Gateway, observability, and MCP adapter separate. Do not introduce a generic raw Discord request tool, caller-selected API origin, ambient policy fallback, shared bot custody, or automatic retry around a possible mutation.
 
 ## Designing a capability

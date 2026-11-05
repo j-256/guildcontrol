@@ -89,8 +89,8 @@ const STABLE_SEMVER = /^[0-9]+\.[0-9]+\.[0-9]+$/
 const FULL_COMMIT_SHA = /^[0-9a-f]{40}$/
 const ABSOLUTE_HTTPS_REFERENCE = /\bhttps:\/\/[^\s<>"'`]+/gu
 const EXPECTED_DEPENDENCIES = {
-  "@modelcontextprotocol/client": "2.3.1",
-  "@modelcontextprotocol/server": "2.3.1",
+  "@modelcontextprotocol/client": "2.4.0",
+  "@modelcontextprotocol/server": "2.4.0",
   "@opentelemetry/api": "1.10.0",
   "@opentelemetry/context-async-hooks": "3.0.0",
   "@opentelemetry/exporter-metrics-otlp-proto": "0.300.0",
@@ -102,7 +102,7 @@ const EXPECTED_DEPENDENCIES = {
   zod: "4.6.7",
 }
 const EXPECTED_DEV_DEPENDENCIES = {
-  "@types/node": "26.6.5",
+  "@types/node": "26.6.6",
   ajv: "8.20.0",
   "ajv-formats": "3.0.1",
   esbuild: "0.28.2",
@@ -303,7 +303,7 @@ const EXPECTED_ACTION_PINS = new Map([
   ["actions/setup-node", "949feb2413d6458794dcd2491c4babbbce0c15c1"],
   ["actions/upload-artifact", "cf430e030ddbb5b0abf93d22962f4752f3646cd9"],
   ["docker/build-push-action", "c3c9e263c25d99ce0380d002d59b67737d91b0dc"],
-  ["docker/login-action", "dbcb813823bdd20940b903addbd779551569679f"],
+  ["docker/login-action", "81c6f93d4bc991e510b342a00b419b3bb4efc5c6"],
   ["docker/setup-buildx-action", "f87e5991a6d7451dcb8d9637bfbc97413f497069"],
   ["docker/setup-qemu-action", "99012661954931238ded8c8b007157a8430204e1"],
   ["github/codeql-action/analyze", "9b3254085494b55a0f7c4c2b3d2d52cc712ce370"],

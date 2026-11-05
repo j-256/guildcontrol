@@ -2,6 +2,10 @@ version: 2
 updates:
   - package-ecosystem: npm
     directory: /
+    groups:
+      mcp-sdk:
+        patterns:
+          - "@modelcontextprotocol/*"
     cooldown:
       default-days: 7
     schedule:
