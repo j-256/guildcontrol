@@ -18,6 +18,7 @@ import { Client } from "@modelcontextprotocol/client"
 import { StdioClientTransport } from "@modelcontextprotocol/client/stdio"
 
 import { DOCUMENTATION_URL } from "./documentation-manifest.mjs"
+import { dockerClientEnvironment } from "./docker-environment.mjs"
 import {
   invariant,
   readJson,
@@ -452,10 +453,7 @@ async function verifyMcp(image, catalog) {
   const transport = new StdioClientTransport({
     args: restrictedRunArguments(image),
     command: "docker",
-    env: {
-      HOME: process.env.HOME || "",
-      PATH: process.env.PATH || "/usr/bin:/bin",
-    },
+    env: dockerClientEnvironment(),
   })
   const client = new Client(
     { name: "container-catalog-verifier", version: "1.0.0" },
