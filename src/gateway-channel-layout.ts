@@ -6,6 +6,7 @@ import {
   DISCORD_SNOWFLAKE_PATTERN,
   SCHEMA_VERSION,
 } from "./constants.js"
+import { isGuildChannelTopologyType } from "./guild-channel-types.js"
 
 export type GatewayChannelLayoutState =
   | "disabled"
@@ -88,17 +89,6 @@ interface StoredGuildLayout {
   updatedAt: string | null
 }
 
-const DIRECT_GUILD_CHANNEL_TYPES: ReadonlySet<number> = new Set([
-  DISCORD_CHANNEL_TYPES.announcement,
-  DISCORD_CHANNEL_TYPES.category,
-  DISCORD_CHANNEL_TYPES.directory,
-  DISCORD_CHANNEL_TYPES.forum,
-  DISCORD_CHANNEL_TYPES.media,
-  DISCORD_CHANNEL_TYPES.stageVoice,
-  DISCORD_CHANNEL_TYPES.text,
-  DISCORD_CHANNEL_TYPES.voice,
-])
-
 function recordValue(value: unknown): Record<string, unknown> | undefined {
   if (!value || typeof value !== "object" || Array.isArray(value)) return undefined
   return value as Record<string, unknown>
@@ -138,7 +128,7 @@ function parseChannel(
     !channelId
     || type === undefined
     || position === undefined
-    || !DIRECT_GUILD_CHANNEL_TYPES.has(type)
+    || !isGuildChannelTopologyType(type)
   ) return undefined
   const parentChannelId = record.parent_id === undefined || record.parent_id === null
     ? null

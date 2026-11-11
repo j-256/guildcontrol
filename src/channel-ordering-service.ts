@@ -37,6 +37,7 @@ import {
   GuildChannelEvidenceError,
   type GuildChannelHttpEvidenceMode,
 } from "./guild-channel-evidence.js"
+import { isGuildChannelTopologyType } from "./guild-channel-types.js"
 import { stableString } from "./normalize.js"
 import {
   type OperationReceipt,
@@ -653,7 +654,7 @@ function exactHttpChannels(
       || !Number.isSafeInteger(position)
       || (position as number) < 0
       || !Number.isSafeInteger(type)
-      || !DIRECT_GUILD_CHANNEL_TYPES.has(type as number)
+      || !isGuildChannelTopologyType(type)
     ) throw evidenceError("Discord returned invalid channel-ordering HTTP inventory evidence")
     const layoutChannel = layoutById.get(id)
     if (
@@ -663,11 +664,14 @@ function exactHttpChannels(
       || layoutChannel.position !== position
       || layoutChannel.parentChannelId !== parentChannelId
     ) throw evidenceError("Discord HTTP and Gateway channel-ordering evidence do not match")
-    const projectedOverwrites = exactOverwrites(record.permission_overwrites)
+    const recognizedType = DIRECT_GUILD_CHANNEL_TYPES.has(type)
+    const projectedOverwrites = recognizedType
+      ? exactOverwrites(record.permission_overwrites)
+      : { overwrites: [], unknownFieldCount: 0 }
     channels.set(id, {
       id,
       metadataVisibility: "visible",
-      name: exactName(record.name),
+      name: recognizedType ? exactName(record.name) : null,
       parentChannelId,
       permissionOverwrites: projectedOverwrites.overwrites,
       position: position as number,

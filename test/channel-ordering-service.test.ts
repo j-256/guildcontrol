@@ -447,6 +447,33 @@ test("channel-order audit returns canonical complete layout and privacy evidence
   })
 })
 
+test("channel-order audit retains unrecognized types without interpreting their metadata", async () => {
+  const client = new FixtureClient()
+  const opaque = channel("740000000000000007", "Opaque", 20, 0, null)
+  delete opaque.name
+  delete opaque.permission_overwrites
+  client.channels.push(opaque)
+  client.source.snapshot = layoutSnapshot(client.channels)
+  const { service } = fixture({ client })
+  const audit = await service.audit(APPLICATION_ID, BOT_ID, GUILD_ID)
+  const group = audit.groups.find((entry) => entry.family === "unsupported")
+  assert.ok(group)
+  assert.equal(group.unsupportedType, 20)
+  assert.equal(group.channels[0]?.id, opaque.id)
+  const plan = await service.plan(APPLICATION_ID, BOT_ID, request())
+  assert.equal(plan.writeRequired, true)
+  assert.equal(plan.positionWrites.some((entry) => entry.channelId === opaque.id), false)
+})
+
+test("channel-order changes reject an unrecognized target or affected sibling", async () => {
+  const client = new FixtureClient()
+  client.channels.push(channel("740000000000000007", "Opaque", 20, 4, CATEGORY_ID))
+  client.source.snapshot = layoutSnapshot(client.channels)
+  const { service } = fixture({ client })
+  await assert.rejects(service.plan(APPLICATION_ID, BOT_ID, request()), /unsupported direct channel type/)
+  await assert.rejects(service.plan(APPLICATION_ID, BOT_ID, request({ channelId: "740000000000000007" })), /supported channel family/)
+})
+
 test("channel-order planning binds complete groups and normalizes the whole family", async () => {
   const { service } = fixture()
 

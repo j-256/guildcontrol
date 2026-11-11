@@ -38,6 +38,7 @@ import {
   GuildChannelEvidenceError,
   type GuildChannelEvidenceView,
 } from "./guild-channel-evidence.js"
+import { isGuildChannelTopologyType } from "./guild-channel-types.js"
 import {
   type OperationReceipt,
   type OperationStore,
@@ -496,7 +497,7 @@ function exactChannels(
       || !positiveSnowflake(channel.id)
       || ids.has(channel.id)
       || !Number.isSafeInteger(channel.type)
-      || !DIRECT_GUILD_CHANNEL_TYPES.has(channel.type)
+      || !isGuildChannelTopologyType(channel.type)
       || channel.guild_id !== guildId
       || (
         channel.parent_id !== undefined
@@ -506,6 +507,11 @@ function exactChannels(
     ) {
       throw new MemberRoleStateError(
         "Discord returned incomplete or mismatched member-role channel evidence",
+      )
+    }
+    if (!DIRECT_GUILD_CHANNEL_TYPES.has(channel.type)) {
+      throw new MemberRoleStateError(
+        `Discord channel type ${channel.type} is unsupported for complete member-role permission impact; this build retains its topology but cannot evaluate its permissions`,
       )
     }
     ids.add(channel.id)

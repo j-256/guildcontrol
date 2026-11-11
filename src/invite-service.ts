@@ -50,6 +50,7 @@ import {
   GuildChannelEvidenceError,
   type GuildChannelEvidenceView,
 } from "./guild-channel-evidence.js"
+import { isGuildChannelTopologyType } from "./guild-channel-types.js"
 import { stableString } from "./normalize.js"
 import {
   type OperationReceipt,
@@ -1230,8 +1231,11 @@ function exactInviteRoleImpactChannels(
       || !positiveSnowflake(channel.id)
       || channelIds.has(channel.id)
       || channel.guild_id !== guildId
-      || !DIRECT_GUILD_CHANNEL_TYPES.has(channel.type)
-      || !validText(channel.name, DISCORD_LIMITS.channelNameCharacters)
+      || !isGuildChannelTopologyType(channel.type)
+      || (
+        DIRECT_GUILD_CHANNEL_TYPES.has(channel.type)
+        && !validText(channel.name, DISCORD_LIMITS.channelNameCharacters)
+      )
       || (
         channel.parent_id !== undefined
         && channel.parent_id !== null
@@ -1240,6 +1244,11 @@ function exactInviteRoleImpactChannels(
     ) {
       throw evidenceError(
         "Discord returned incomplete or mismatched invite role-assignment channel evidence",
+      )
+    }
+    if (!DIRECT_GUILD_CHANNEL_TYPES.has(channel.type)) {
+      throw evidenceError(
+        `Discord channel type ${channel.type} is unsupported for complete invite role-assignment permission impact; this build retains its topology but cannot evaluate its permissions`,
       )
     }
     channelIds.add(channel.id)
@@ -2341,6 +2350,9 @@ export class InviteService {
     const guild = exactGuild(rawGuild, request.guildId)
     const botMember = exactBotMember(rawBotMember, request.guildId, botId)
     const roles = exactRoles(rawRoles, request.guildId)
+    const roleGrantChannels = request.roleAssignment.kind === "grant"
+      ? exactInviteRoleImpactChannels(rawChannels, request.guildId, roles)
+      : []
     const channels = exactChannels(rawChannels, request.guildId)
     const channel = exactInviteCreationChannel(
       rawChannels,
@@ -2357,9 +2369,6 @@ export class InviteService {
       request.acceptance.kind,
       request.roleAssignment.kind,
     )
-    const roleGrantChannels = request.roleAssignment.kind === "grant"
-      ? exactInviteRoleImpactChannels(rawChannels, request.guildId, roles)
-      : []
     const roleAssignment = request.roleAssignment.kind === "grant"
       ? buildInviteRoleAssignmentReview({
           botMember,

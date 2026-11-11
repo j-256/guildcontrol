@@ -19,6 +19,7 @@ const TEXT_ID = "200000000000000002"
 const VOICE_ID = "200000000000000003"
 const OTHER_CHANNEL_ID = "200000000000000004"
 const TOKEN = "test-discord-token"
+const UNRECOGNIZED_CHANNEL_TYPES = [20, 99] as const
 
 function layoutStore(guildIds: readonly string[] = [GUILD_ID]) {
   let milliseconds = Date.parse("2026-08-23T00:00:00.000Z")
@@ -179,7 +180,41 @@ test("Gateway layout scope is exact and channel-only event scope retains no guil
   })
 })
 
-test("Gateway layout seeds reject partial, duplicate, unknown, and invalid topology atomically", () => {
+test("Gateway layouts retain unrecognized direct types as opaque topology", () => {
+  for (const type of UNRECOGNIZED_CHANNEL_TYPES) {
+    const store = layoutStore()
+    const opaqueChannel = {
+      flags: 0,
+      id: OTHER_CHANNEL_ID,
+      name: TOKEN,
+      parent_id: null,
+      position: 2,
+      type,
+    }
+    store.ingestDispatch("GUILD_CREATE", {
+      channels: [...directChannels(), opaqueChannel],
+      id: GUILD_ID,
+    })
+    const snapshot = store.getChannelLayout(GUILD_ID)
+    assert.equal(snapshot.state, "ready")
+    assert.equal(snapshot.complete, true)
+    assert.deepEqual(snapshot.channels.find((entry) => entry.channelId === OTHER_CHANNEL_ID), {
+      channelId: OTHER_CHANNEL_ID,
+      obfuscated: false,
+      parentChannelId: null,
+      position: 2,
+      type,
+    })
+    assert.equal(JSON.stringify(snapshot).includes(TOKEN), false)
+    store.ingestDispatch("CHANNEL_UPDATE", { ...opaqueChannel, guild_id: GUILD_ID, position: 3 })
+    assert.equal(store.getChannelLayout(GUILD_ID).channels.find((entry) => entry.channelId === OTHER_CHANNEL_ID)?.position, 3)
+    store.ingestDispatch("CHANNEL_DELETE", { ...opaqueChannel, guild_id: GUILD_ID, position: 3 })
+    assert.equal(store.getChannelLayout(GUILD_ID).state, "ready")
+    assert.equal(store.getChannelLayout(GUILD_ID).channels.length, 2)
+  }
+})
+
+test("Gateway layout seeds reject partial, duplicate, non-guild, and invalid topology atomically", () => {
   for (const payload of [
     { id: GUILD_ID },
     { channels: null, id: GUILD_ID },
@@ -196,7 +231,9 @@ test("Gateway layout seeds reject partial, duplicate, unknown, and invalid topol
       ...directChannels(),
       { ...directChannels()[1], id: TEXT_ID },
     ],
-    [{ id: TEXT_ID, parent_id: null, position: 0, type: 99 }],
+    ...[DISCORD_CHANNEL_TYPES.dm, DISCORD_CHANNEL_TYPES.groupDm].map((type) => [
+      { id: TEXT_ID, parent_id: null, position: 0, type },
+    ]),
     [{ id: "18446744073709551616", parent_id: null, position: 0, type: DISCORD_CHANNEL_TYPES.text }],
     [{ id: TEXT_ID, parent_id: null, position: 0, type: DISCORD_CHANNEL_TYPES.publicThread }],
     [{ id: CATEGORY_ID, parent_id: TEXT_ID, position: 0, type: DISCORD_CHANNEL_TYPES.category }],

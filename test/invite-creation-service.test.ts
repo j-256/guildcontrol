@@ -102,6 +102,7 @@ interface FixtureState {
   activityFailureAt: number | null
   allowInviteRoleAssignment: boolean
   channel: DiscordChannel
+  channelInventory: DiscordChannel[] | null
   createError: unknown
   created: DiscordInviteSummary
   inventoryVerification: DiscordInviteSummary[]
@@ -212,6 +213,7 @@ async function fixture(
     activityFailureAt: null,
     allowInviteRoleAssignment: false,
     channel: channel(),
+    channelInventory: null,
     createError: undefined,
     created: createdInvite(),
     inventoryVerification: [createdInvite()],
@@ -316,7 +318,7 @@ async function fixture(
     },
     async getGuildChannels() {
       events.push("read:channels")
-      return [state.channel]
+      return state.channelInventory ?? [state.channel]
     },
     async getGuildMember() {
       events.push("read:member")
@@ -359,13 +361,13 @@ async function fixture(
     layoutEnabled: true,
     getChannelLayout(guildId) {
       return {
-        channels: [{
-          channelId: state.channel.id,
+        channels: (state.channelInventory ?? [state.channel]).map((channel) => ({
+          channelId: channel.id,
           obfuscated: state.layoutObfuscated,
-          parentChannelId: state.channel.parent_id ?? null,
-          position: state.channel.position ?? 0,
-          type: state.channel.type,
-        }],
+          parentChannelId: channel.parent_id ?? null,
+          position: channel.position ?? 0,
+          type: channel.type,
+        })),
         complete: state.layoutComplete,
         guildId,
         reason: state.layoutState === "ready" ? null : "connection-gap",
@@ -378,8 +380,8 @@ async function fixture(
     getChannelLayoutStatus() {
       return {
         channels: {
-          obfuscated: state.layoutObfuscated ? 1 : 0,
-          retained: 1,
+          obfuscated: state.layoutObfuscated ? (state.channelInventory?.length ?? 1) : 0,
+          retained: state.channelInventory?.length ?? 1,
         },
         enabled: true,
         guilds: {
@@ -838,6 +840,27 @@ test("invite role assignment fails closed on policy and Gateway evidence", async
       expected,
     )
     assert.equal(setup.events.some((entry) => entry.startsWith("write:")), false)
+  }
+})
+
+test("invite role assignment identifies unmodeled channel permission impact", async (context) => {
+  for (const type of [20, 99]) {
+    const opaqueChannel = { ...channel(), id: "500000000000000002", type }
+    delete opaqueChannel.name
+    const setup = await fixture(context, roleGrantState({
+      channelInventory: [channel(), opaqueChannel],
+    }))
+    await assert.rejects(
+      setup.service.planCreation(APPLICATION_ID, BOT_ID, request(setup.outputFile, {
+        roleAssignment: {
+          acknowledgePersistentGrants: true,
+          kind: "grant",
+          roleIds: [GRANTED_ROLE_ID],
+        },
+      })),
+      new RegExp(`channel type ${type}.*unsupported.*invite role-assignment permission impact`),
+    )
+    assert.equal(setup.events.some((event) => event.startsWith("write:")), false)
   }
 })
 
