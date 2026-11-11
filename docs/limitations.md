@@ -115,7 +115,7 @@ For an uncertain write, inspect the exact Discord target and audit evidence, ret
 
 | Shortcut or surface | Boundary | Supported direction |
 | --- | --- | --- |
-| Generic Discord REST dispatcher or raw request body | No broad escape hatch around typed schemas and policy | Use the narrow canonical tool whose evidence and privacy projection match the action |
+| Generic Discord REST dispatcher, raw request body, or browser/user-session fallback | No escape hatch around bot authentication, typed schemas, and policy | Use the narrow canonical tool whose bot access, evidence, and privacy projection match the action |
 | Fuzzy name, ordinal, or model-selected destructive targets | Names are untrusted presentation, not authority | Discover the resource, retain its exact ID, then plan the exact action |
 | Name-adopting or broad best-effort declarative reconciliation | A logical match can select the wrong duplicate, while partial retry after ambiguous writes can repeat effects | Use exact or receipt-bound blueprint convergence for supported role, channel, ordering, and permission fields; use the standalone reviewed workflows for one-off placement or parent-category overwrite synchronization |
 | Immediate delete, moderation, administration, or structural mutation | A destructive annotation alone is not sufficient protection | Call the reviewed execute tool for a fresh elicited plan, or use detached plan and digest mode; both retain final freshness, one-shot evidence, and readback |

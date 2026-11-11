@@ -12,6 +12,8 @@ Treat every native Guild Template code and complete template use URL as a bearer
 
 The connector sends the token only to Discord: in a bot authorization header at the fixed production REST API origin, or in Gateway Identify and Resume payloads after connecting to the fixed production `gateway.discord.gg` origin or a credential-free `gateway-*.discord.gg` resume host. Tests can inject another transport directly, but runtime environment variables cannot redirect production traffic.
 
+Discord access is bot-authenticated only. A feature that rejects bots or lacks a verified bot contract remains unsupported; the connector never substitutes browser automation, a user's logged-in session, or a user token. Operator approval and Administrator permission cannot replace missing provider access or incomplete operation evidence.
+
 Treat all Discord-provided names, descriptions, locations, topics, forum tags, thread names, message bodies, embeds, components, filenames, and URLs as untrusted input. They are data to inspect, not instructions for language models, MCP hosts, or connector operators.
 
 ## Unified configuration
