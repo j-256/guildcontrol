@@ -1,22 +1,17 @@
 export const LOW_MEMORY_NODE_ARGUMENTS = Object.freeze([
-  "--lite-mode",
-] as const)
-
-export const NODE_22_23_LOW_MEMORY_NODE_ARGUMENTS = Object.freeze([
-  "--no-expose-wasm",
-  ...LOW_MEMORY_NODE_ARGUMENTS,
+  "--optimize-for-size",
 ] as const)
 
 const FIRST_LOW_MEMORY_NODE_MAJOR = 22
-const LAST_LEGACY_LOW_MEMORY_NODE_MAJOR = 23
 const LAST_VERIFIED_LOW_MEMORY_NODE_MAJOR = 26
 const STANDARD_NODE_ARGUMENTS = Object.freeze([] as const)
 
 export const STANDARD_RUNTIME_ARGUMENT = "--standard-runtime"
+export type NodeRuntimeProfile = "low-memory" | "standard"
 
 export interface NodeRuntimeResolution {
   readonly cliArguments: readonly string[]
-  readonly profile: "low-memory" | "standard"
+  readonly profile: NodeRuntimeProfile
   readonly replacement?: {
     readonly args: readonly string[]
     readonly file: string
@@ -38,12 +33,6 @@ export function lowMemoryNodeArguments(
   const major = Number.parseInt(nodeVersion.split(".", 1)[0] || "", 10)
   if (
     major >= FIRST_LOW_MEMORY_NODE_MAJOR
-    && major <= LAST_LEGACY_LOW_MEMORY_NODE_MAJOR
-  ) {
-    return NODE_22_23_LOW_MEMORY_NODE_ARGUMENTS
-  }
-  if (
-    major > LAST_LEGACY_LOW_MEMORY_NODE_MAJOR
     && major <= LAST_VERIFIED_LOW_MEMORY_NODE_MAJOR
   ) {
     return LOW_MEMORY_NODE_ARGUMENTS
@@ -75,7 +64,7 @@ function booleanFlagState(
 export function isLowMemoryNodeRuntime(
   execArgv: readonly string[],
 ): boolean {
-  return booleanFlagState(execArgv, "lite-mode") === true
+  return booleanFlagState(execArgv, "optimize-for-size") === true
 }
 
 export function resolveNodeRuntime(
@@ -88,6 +77,7 @@ export function resolveNodeRuntime(
     ? suppliedCliArguments.slice(1)
     : suppliedCliArguments
   const standardRequested = launcherStandardRequested
+    || booleanFlagState(options.execArgv, "optimize-for-size") === false
     || booleanFlagState(options.execArgv, "lite-mode") === false
     || booleanFlagState(options.execArgv, "expose-wasm") === true
   if (standardRequested) {
@@ -115,14 +105,8 @@ export function resolveNodeRuntime(
   const nodeArguments = [...options.execArgv]
   for (const argument of lowMemoryArguments) {
     if (
-      argument === "--no-expose-wasm"
-      && booleanFlagState(nodeArguments, "expose-wasm") !== false
-    ) {
-      nodeArguments.push(argument)
-    }
-    if (
-      argument === "--lite-mode"
-      && booleanFlagState(nodeArguments, "lite-mode") !== true
+      argument === "--optimize-for-size"
+      && booleanFlagState(nodeArguments, "optimize-for-size") !== true
     ) {
       nodeArguments.push(argument)
     }

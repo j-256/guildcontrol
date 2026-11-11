@@ -24,7 +24,7 @@
     "mcp_config": {
       "command": "node",
       "args": [
-        "--lite-mode",
+        "--optimize-for-size",
         "${__dirname}/server/guildcontrol.mjs",
         "serve",
         "--config",

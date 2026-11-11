@@ -5858,6 +5858,28 @@ test("CLI renders contextual action help without consulting dependencies or envi
   assert.match(canonical.value(), /opens no browser/u)
 })
 
+test("CLI smoke preserves an explicitly selected standard Node runtime", async () => {
+  let observedLaunch: { args: readonly string[]; command: string } | undefined
+  const exitCode = await runCli({
+    args: ["smoke", "--config", CONFIG_FILE],
+    dependencies: dependencies({
+      async smoke(options) {
+        observedLaunch = options.launch
+        return smokeReport()
+      },
+    }),
+    entrypointPath: "/srv/guildcontrol/dist/cli.js",
+    executablePath: "/usr/bin/node",
+    nodeRuntimeProfile: "standard",
+    stdout: outputStream().stream,
+  })
+  assert.equal(exitCode, 0)
+  assert.deepEqual(observedLaunch, {
+    args: ["/srv/guildcontrol/dist/cli.js", "serve", "--config", CONFIG_FILE],
+    command: "/usr/bin/node",
+  })
+})
+
 test("CLI renders smoke, help, and version output", async () => {
   const smokeOutput = outputStream()
   const helpOutput = outputStream()

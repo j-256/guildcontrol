@@ -313,8 +313,7 @@ export function validateOciConfig(configDocument, expected) {
   invariant(config?.WorkingDir === "/app", "OCI image working directory changed")
   assert.deepEqual(config?.Entrypoint, [
     "node",
-    "--no-expose-wasm",
-    "--lite-mode",
+    "--optimize-for-size",
     "dist/cli.js",
   ])
   assert.deepEqual(config?.Cmd, ["catalog"])

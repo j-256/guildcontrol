@@ -4,7 +4,7 @@ import process from "node:process"
 import { fileURLToPath } from "node:url"
 
 import { isMainModule } from "./entrypoint.js"
-import { resolveNodeRuntime } from "./node-runtime.js"
+import { resolveNodeRuntime, type NodeRuntimeProfile } from "./node-runtime.js"
 
 type ProcessReplacement = (
   file: string,
@@ -19,7 +19,7 @@ export interface GuildControlBinOptions {
   readonly execPath?: string
   readonly execve?: ProcessReplacement | null
   readonly nodeVersion?: string
-  readonly runCli?: (args: readonly string[]) => Promise<number>
+  readonly runCli?: (args: readonly string[], profile: NodeRuntimeProfile) => Promise<number>
 }
 
 export async function runGuildControlBin(
@@ -40,11 +40,14 @@ export async function runGuildControlBin(
   if (resolution.replacement && execve) {
     execve(resolution.replacement.file, resolution.replacement.args, process.env)
   }
-  const runCli = options.runCli ?? (async (args: readonly string[]) => {
+  const runCli = options.runCli ?? (async (
+    args: readonly string[],
+    nodeRuntimeProfile: NodeRuntimeProfile,
+  ) => {
     const { runCli: run } = await import("./cli.js")
-    return run({ args })
+    return run({ args, nodeRuntimeProfile })
   })
-  return runCli(resolution.cliArguments)
+  return runCli(resolution.cliArguments, resolution.profile)
 }
 
 if (isMainModule(import.meta.url)) {
