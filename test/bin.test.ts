@@ -1,11 +1,34 @@
 import assert from "node:assert/strict"
+import { execFile } from "node:child_process"
+import { mkdtemp, realpath, rm, writeFile } from "node:fs/promises"
+import { tmpdir } from "node:os"
+import { join } from "node:path"
 import test from "node:test"
+import { fileURLToPath } from "node:url"
+import { promisify } from "node:util"
 
 import { runGuildControlBin } from "../src/bin.js"
+import { fixtureConfigInput } from "./config-fixture.js"
 
 const EXECUTABLE = "/runtime/node"
 const LAUNCHER = "/package/dist/bin.js"
 const CLI = "/package/dist/cli.js"
+
+test("standard package-bin child launches bypass the default runtime bootstrap", async (context) => {
+  const root = await mkdtemp(join(await realpath(tmpdir()), "guildcontrol-bin-standard-"))
+  context.after(() => rm(root, { force: true, recursive: true }))
+  const configFile = join(root, "config.json")
+  await writeFile(configFile, `${JSON.stringify(fixtureConfigInput().document)}\n`, { mode: 0o600 })
+  const { stdout } = await promisify(execFile)(process.execPath, [
+    "--import", "tsx", fileURLToPath(new URL("../src/bin.ts", import.meta.url)),
+    "--standard-runtime", "host", "--config", configFile, "--json",
+  ], { env: { PATH: process.env.PATH } })
+  const report = JSON.parse(stdout)
+  assert.deepEqual(report.launch.args, [
+    fileURLToPath(new URL("../src/cli.js", import.meta.url)),
+    "serve", "--config", configFile,
+  ])
+})
 
 test("package bin passes the selected standard runtime through to the CLI", async () => {
   let observedProfile: string | undefined
