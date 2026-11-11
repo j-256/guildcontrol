@@ -35,9 +35,11 @@ import type {
 } from "./gateway-channel-layout.js"
 import {
   collectGuildChannelEvidence,
+  DIRECT_GUILD_CHANNEL_TYPES,
   GuildChannelEvidenceError,
   type GuildChannelHttpEvidenceMode,
 } from "./guild-channel-evidence.js"
+import { isGuildChannelTopologyType } from "./guild-channel-types.js"
 import {
   guildBlueprintRoleRecoveryStateDigest,
 } from "./guild-blueprint-capture-service.js"
@@ -480,9 +482,15 @@ function exactChannelDependencies(
     if (
       channel.guild_id !== guildId
       || !snowflake(channel.id)
+      || !isGuildChannelTopologyType(channel.type)
       || !Array.isArray(channel.permission_overwrites)
       || channel.permission_overwrites.length > DISCORD_LIMITS.channelPermissionOverwrites
     ) throw evidenceError("Discord returned incomplete channel overwrite evidence")
+    if (!DIRECT_GUILD_CHANNEL_TYPES.has(channel.type)) {
+      throw evidenceError(
+        `Discord channel type ${channel.type} is unsupported for complete role-deletion dependency evidence`,
+      )
+    }
     const keys = new Set<string>()
     const overwrites = channel.permission_overwrites.map((overwrite: DiscordPermissionOverwrite) => {
       const record = recordValue(overwrite)

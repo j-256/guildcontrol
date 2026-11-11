@@ -780,6 +780,18 @@ test("role-deletion blocks holders, managed roles, and hierarchy violations", as
   assert.ok(hierarchy.blockers.some((entry) => entry.kind === "role-hierarchy"))
 })
 
+test("role-deletion rejects unmodeled channel dependencies before declaring readiness", async () => {
+  for (const type of [20, 99]) {
+    const client = new FixtureClient()
+    client.channels = [{ ...channel(GUILD_ID), type }]
+    client.source.snapshot = layoutSnapshot(client.channels, GUILD_ID)
+    const { service } = fixture({ client })
+    const expected = new RegExp(`channel type ${type}.*unsupported.*role-deletion dependency`)
+    await assert.rejects(service.audit(APPLICATION_ID, BOT_ID, GUILD_ID, TARGET_ROLE_ID), expected)
+    await assert.rejects(service.plan(APPLICATION_ID, BOT_ID, request()), expected)
+  }
+})
+
 test("role-deletion fails closed on unknown and incomplete evidence", async () => {
   const unknownRoleClient = new FixtureClient()
   const targetRole = unknownRoleClient.roles.find((entry) => entry.id === TARGET_ROLE_ID)

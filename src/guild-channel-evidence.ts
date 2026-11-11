@@ -12,6 +12,7 @@ import type {
   GatewayChannelLayoutSource,
 } from "./gateway-channel-layout.js"
 import { stableString } from "./normalize.js"
+import { isGuildChannelTopologyType } from "./guild-channel-types.js"
 import type { DiscordChannel } from "./types.js"
 
 export const DIRECT_GUILD_CHANNEL_TYPES: ReadonlySet<number> = new Set([
@@ -142,7 +143,7 @@ export function exactGatewayChannelLayout(
       || !(candidate.parentChannelId === null || snowflake(candidate.parentChannelId))
       || nonnegativeSafeInteger(candidate.position) === undefined
       || nonnegativeSafeInteger(candidate.type) === undefined
-      || !DIRECT_GUILD_CHANNEL_TYPES.has(candidate.type)
+      || !isGuildChannelTopologyType(candidate.type)
     ) throw evidenceError("Discord Gateway returned invalid channel layout evidence")
     channels.set(candidate.channelId, { ...candidate })
   }
@@ -208,7 +209,7 @@ function reconcileHttpChannels<TChannel extends DiscordChannel>(
       || !(record.parent_id === undefined || record.parent_id === null || parentChannelId)
       || position === undefined
       || type === undefined
-      || !DIRECT_GUILD_CHANNEL_TYPES.has(type)
+      || !isGuildChannelTopologyType(type)
     ) throw evidenceError("Discord returned invalid guild channel HTTP inventory evidence")
     const layoutChannel = layoutById.get(channelId)
     if (

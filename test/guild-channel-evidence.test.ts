@@ -21,6 +21,33 @@ const VISIBLE_CHANNEL_ID = "200000000000000001"
 const HIDDEN_CHANNEL_ID = "200000000000000002"
 const SECOND_GUILD_ID = "100000000000000002"
 const CLONE_GUILD_ID = "100000000000000003"
+const UNRECOGNIZED_CHANNEL_ID = "200000000000000003"
+
+test("complete guild channel evidence retains unrecognized direct types", async () => {
+  for (const type of [20, 99]) {
+    const source = new LayoutSource()
+    source.current.channels = [...source.current.channels, {
+      channelId: UNRECOGNIZED_CHANNEL_ID,
+      obfuscated: false,
+      parentChannelId: null,
+      position: 2,
+      type,
+    }]
+    const evidence = await collectGuildChannelEvidence({
+      guildId: GUILD_ID,
+      layoutSource: source,
+      readChannels: async () => [
+        channel(VISIBLE_CHANNEL_ID),
+        channel(HIDDEN_CHANNEL_ID),
+        channel(UNRECOGNIZED_CHANNEL_ID, { position: 2, type }),
+      ],
+    })
+    assert.equal(evidence.view.httpMode, "complete")
+    assert.equal(evidence.view.httpChannelCount, 3)
+    assert.equal(evidence.layout.channels.find((entry) => entry.channelId === UNRECOGNIZED_CHANNEL_ID)?.type, type)
+    assert.equal(evidence.channels.find((entry) => entry.id === UNRECOGNIZED_CHANNEL_ID)?.type, type)
+  }
+})
 
 function channel(
   id: string,
@@ -130,22 +157,27 @@ test("collectGuildChannelEvidence accepts a complete visible inventory", async (
 })
 
 test("collectGuildChannelEvidence discards obfuscated HTTP metadata", async () => {
-  const source = new LayoutSource()
-  source.current = snapshot({ obfuscatedIds: [HIDDEN_CHANNEL_ID] })
-  const evidence = await collectGuildChannelEvidence({
-    guildId: GUILD_ID,
-    layoutSource: source,
-    readChannels: async () => [
-      channel(VISIBLE_CHANNEL_ID),
-      channel(HIDDEN_CHANNEL_ID, { name: "must-not-survive" }),
-    ],
-  })
+  for (const type of [DISCORD_CHANNEL_TYPES.text, 20, 99]) {
+    const source = new LayoutSource()
+    source.current = snapshot({ obfuscatedIds: [HIDDEN_CHANNEL_ID] })
+    source.current.channels = source.current.channels.map((entry) => (
+      entry.channelId === HIDDEN_CHANNEL_ID ? { ...entry, type } : entry
+    ))
+    const evidence = await collectGuildChannelEvidence({
+      guildId: GUILD_ID,
+      layoutSource: source,
+      readChannels: async () => [
+        channel(VISIBLE_CHANNEL_ID),
+        channel(HIDDEN_CHANNEL_ID, { name: "must-not-survive", type }),
+      ],
+    })
 
-  assert.deepEqual(evidence.channels.map((entry) => entry.id), [VISIBLE_CHANNEL_ID])
-  assert.equal(JSON.stringify(evidence).includes("must-not-survive"), false)
-  assert.equal(evidence.view.httpMode, "complete")
-  assert.equal(evidence.view.metadataCoverage, "visibility-bounded")
-  assert.equal(evidence.view.obfuscatedChannelCount, 1)
+    assert.deepEqual(evidence.channels.map((entry) => entry.id), [VISIBLE_CHANNEL_ID])
+    assert.equal(JSON.stringify(evidence).includes("must-not-survive"), false)
+    assert.equal(evidence.view.httpMode, "complete")
+    assert.equal(evidence.view.metadataCoverage, "visibility-bounded")
+    assert.equal(evidence.view.obfuscatedChannelCount, 1)
+  }
 })
 
 test("collectGuildChannelEvidence accepts the exact non-obfuscated HTTP subset", async () => {

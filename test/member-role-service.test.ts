@@ -1127,6 +1127,17 @@ test("member-role planning enforces local scope, identities, target state, and h
   )
 })
 
+test("member-role planning identifies unmodeled channel permission impact", async () => {
+  for (const type of [20, 99]) {
+    const setup = fixture({ state: { channels: [channel(CHANNEL_ID, { type })] } })
+    await assert.rejects(
+      setup.service.plan(APPLICATION_ID, BOT_ID, request()),
+      new RegExp(`channel type ${type}.*unsupported.*member-role permission impact`),
+    )
+    assert.equal(setup.events.some((event) => event.startsWith("write:")), false)
+  }
+})
+
 test("member-role planning fails closed on malformed or excessive impact evidence", async () => {
   const malformedChannel = channel()
   delete malformedChannel.permission_overwrites
