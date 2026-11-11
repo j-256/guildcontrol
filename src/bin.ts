@@ -28,10 +28,11 @@ export async function runGuildControlBin(
   const execve = options.execve === undefined
     ? process.execve
     : options.execve || undefined
+  const cliEntrypoint = options.cliEntrypoint
+    ?? fileURLToPath(new URL("./cli.js", import.meta.url))
   const resolution = resolveNodeRuntime({
     argv: options.argv ?? process.argv,
-    cliEntrypoint: options.cliEntrypoint
-      ?? fileURLToPath(new URL("./cli.js", import.meta.url)),
+    cliEntrypoint,
     execArgv: options.execArgv ?? process.execArgv,
     execPath: options.execPath ?? process.execPath,
     nodeVersion: options.nodeVersion ?? process.versions.node,
@@ -45,7 +46,7 @@ export async function runGuildControlBin(
     nodeRuntimeProfile: NodeRuntimeProfile,
   ) => {
     const { runCli: run } = await import("./cli.js")
-    return run({ args, nodeRuntimeProfile })
+    return run({ args, entrypointPath: cliEntrypoint, nodeRuntimeProfile })
   })
   return runCli(resolution.cliArguments, resolution.profile)
 }
