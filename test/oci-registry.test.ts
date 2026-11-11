@@ -112,8 +112,7 @@ function validConfig(): object {
       Cmd: ["catalog"],
       Entrypoint: [
         "node",
-        "--no-expose-wasm",
-        "--lite-mode",
+        "--optimize-for-size",
         "dist/cli.js",
       ],
       Env: [

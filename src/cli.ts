@@ -163,6 +163,7 @@ import { runGuildControlServer } from "./mcp.js"
 import {
   lowMemoryNodeArguments,
   STANDARD_RUNTIME_ARGUMENT,
+  type NodeRuntimeProfile,
 } from "./node-runtime.js"
 import {
   FileOperationStore,
@@ -732,6 +733,7 @@ export interface CliOptions {
   environment?: NodeJS.ProcessEnv
   executablePath?: string
   interaction?: CliInteraction
+  nodeRuntimeProfile?: NodeRuntimeProfile
   nodeVersion?: string
   stderr?: Pick<NodeJS.WriteStream, "write">
   stdin?: Pick<NodeJS.ReadStream, "isTTY">
@@ -3592,7 +3594,9 @@ function currentEntrypointLaunch(options: CliOptions): {
   return entrypointPath
     ? {
         args: [
-          ...lowMemoryNodeArguments(options.nodeVersion || process.versions.node),
+          ...(options.nodeRuntimeProfile === "standard"
+            ? []
+            : lowMemoryNodeArguments(options.nodeVersion || process.versions.node)),
           entrypointPath,
           "serve",
         ],

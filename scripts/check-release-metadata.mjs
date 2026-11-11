@@ -935,9 +935,9 @@ async function checkDocumentation(packageJson) {
   invariant(gettingStarted.includes("bundle supports macOS, Windows, and Linux with Node.js 22.15 through 26"), "getting-started guide lacks the exact MCPB runtime range")
   invariant(reference.includes("[Product boundaries and host compatibility](limitations.md)"), "complete reference lacks the product-boundaries route")
   invariant(reference.includes("public CLI launcher is `dist/bin.js`"), "complete reference lacks the public package launcher")
-  invariant(reference.includes("V8's `--lite-mode`"), "complete reference lacks the low-memory runtime contract")
+  invariant(reference.includes("V8's `--optimize-for-size`"), "complete reference lacks the low-memory runtime contract")
   invariant(reference.includes("cross-platform manifest requires Node.js 22.15 through 26"), "complete reference lacks the exact MCPB runtime range")
-  invariant(reference.includes("bundle verification rejects any other stderr"), "complete reference lacks the MCPB warning boundary")
+  invariant(reference.includes("bundle verification rejects any other stderr"), "complete reference lacks strict MCPB startup diagnostics")
   invariant(reference.includes("The `host` generation form requires one explicit `--config FILE` or `--profile NAME`"), "complete reference lacks the host activation contract")
   invariant(reference.includes("`guildcontrol.host-adapters.v1`"), "complete reference lacks verified host adapters")
   invariant(reference.includes("### Reviewed host configuration installation"), "complete reference lacks reviewed host installation")
@@ -1271,7 +1271,7 @@ async function checkContainerSource(packageJson) {
     "COPY --chown=node:node README.md PRIVACY.md SECURITY.md SUPPORT.md ./",
     "COPY --chown=node:node docs/comparison.md docs/getting-started.md docs/limitations.md docs/migration.md docs/reference.md docs/releasing.md docs/safety-usability.md ./docs/",
     "USER node",
-    "ENTRYPOINT [\"node\", \"--no-expose-wasm\", \"--lite-mode\", \"dist/cli.js\"]",
+    "ENTRYPOINT [\"node\", \"--optimize-for-size\", \"dist/cli.js\"]",
     "CMD [\"catalog\"]",
   ]) {
     invariant(dockerfile.includes(required), `Dockerfile is missing ${required}`)

@@ -32,15 +32,15 @@ const READY_MESSAGE = "[mcp] GuildControl MCP stdio server ready\n"
 
 test("MCPB stderr acceptance requires exact content-free EOF shutdown evidence", () => {
   const output = `${READY_MESSAGE}${JSON.stringify(shutdownReport())}\n`
-  verifyMcpbStderr(output, 24)
-  verifyMcpbStderr(`Warning: disabling flag --expose_wasm due to conflicting flags\n${output}`, 22)
+  verifyMcpbStderr(output)
+  assert.throws(() => verifyMcpbStderr(`Warning: disabling flag --expose_wasm due to conflicting flags\n${output}`))
   for (const invalid of [
     READY_MESSAGE,
     output + "private extra diagnostic\n",
     output + JSON.stringify(shutdownReport()) + "\n",
     output.trimEnd(),
     `private startup text\n${output}`,
-  ]) assert.throws(() => verifyMcpbStderr(invalid, 24))
+  ]) assert.throws(() => verifyMcpbStderr(invalid))
 })
 
 test("MCPB stderr acceptance rejects incomplete, oversized, or content-bearing shutdown evidence", () => {
@@ -53,7 +53,7 @@ test("MCPB stderr acceptance rejects incomplete, oversized, or content-bearing s
     { ...shutdownReport(), privateContent: "withheld" },
     { ...shutdownReport(), components: [] },
     { ...shutdownReport(), components: [{ name: "mcp", status: "failed", durationMs: 1 }] },
-  ]) assert.throws(() => verifyMcpbStderr(`${READY_MESSAGE}${JSON.stringify(invalid)}\n`, 24))
+  ]) assert.throws(() => verifyMcpbStderr(`${READY_MESSAGE}${JSON.stringify(invalid)}\n`))
 })
 
 test("MCPB manifest is pinned, model-neutral, and exact", async () => {

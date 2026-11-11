@@ -41,8 +41,6 @@ const MCPB_TOKEN_INPUT_ENVIRONMENT_VARIABLE = "MCPB_DISCORD_BOT_SECRET"
 const MCPB_VERIFY_TOKEN_VARIABLE = "DISCORD_GUILDCONTROL_BUNDLE_VERIFY_TOKEN"
 const MCPB_VERIFY_TOKEN = "mcpb-artifact-verification-token"
 const MCPB_READY_MESSAGE = "[mcp] GuildControl MCP stdio server ready\n"
-const MCPB_LITE_MODE_WARNING_MAX_NODE_MAJOR = 23
-const LEGACY_LITE_MODE_WARNING = "Warning: disabling flag --expose_wasm due to conflicting flags\n"
 const MCPB_SHUTDOWN_DEADLINE_MS = 5_000
 const MCPB_EXIT_TIMEOUT_MS = 7_000
 const MCPB_SHUTDOWN_COMPONENTS = Object.freeze([
@@ -147,7 +145,7 @@ export async function validateMcpbManifest(document, packageJson) {
     entry_point: "server/guildcontrol.mjs",
     mcp_config: {
       args: [
-        "--lite-mode",
+        "--optimize-for-size",
         "${__dirname}/server/guildcontrol.mjs",
         "serve",
         "--config",
@@ -484,9 +482,8 @@ async function extractArchive(unpacked, root) {
   }
 }
 
-export function verifyMcpbStderr(stderr, nodeMajor) {
-  const prefix = `${nodeMajor <= MCPB_LITE_MODE_WARNING_MAX_NODE_MAJOR
-    ? LEGACY_LITE_MODE_WARNING : ""}${MCPB_READY_MESSAGE}`
+export function verifyMcpbStderr(stderr) {
+  const prefix = MCPB_READY_MESSAGE
   assert.ok(stderr.startsWith(prefix), "Unpacked MCPB startup diagnostic is invalid")
   const report = JSON.parse(stderr.slice(prefix.length))
   assert.match(report.shutdownId, /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/u)
@@ -594,8 +591,7 @@ async function verifyMcpHandshake(unpacked, root, packageJson) {
   } finally {
     await client.close().catch(() => undefined)
   }
-  const nodeMajor = Number.parseInt(process.versions.node.split(".", 1)[0] || "", 10)
-  verifyMcpbStderr(Buffer.concat(stderr).toString("utf8"), nodeMajor)
+  verifyMcpbStderr(Buffer.concat(stderr).toString("utf8"))
 }
 
 export async function buildAndVerifyMcpb(options = {}) {

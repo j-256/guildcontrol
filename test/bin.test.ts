@@ -2,11 +2,31 @@ import assert from "node:assert/strict"
 import test from "node:test"
 
 import { runGuildControlBin } from "../src/bin.js"
-import { NODE_22_23_LOW_MEMORY_NODE_ARGUMENTS } from "../src/node-runtime.js"
 
 const EXECUTABLE = "/runtime/node"
 const LAUNCHER = "/package/dist/bin.js"
 const CLI = "/package/dist/cli.js"
+
+test("package bin passes the selected standard runtime through to the CLI", async () => {
+  let observedProfile: string | undefined
+  const exitCode = await runGuildControlBin({
+    argv: [EXECUTABLE, LAUNCHER, "--standard-runtime", "smoke"],
+    cliEntrypoint: CLI,
+    execArgv: [],
+    execPath: EXECUTABLE,
+    execve() {
+      throw new Error("The standard runtime must not replace the process")
+    },
+    nodeVersion: "24.22.2",
+    runCli: async (args, profile) => {
+      assert.deepEqual(args, ["smoke"])
+      observedProfile = profile
+      return 0
+    },
+  })
+  assert.equal(exitCode, 0)
+  assert.equal(observedProfile, "standard")
+})
 
 test("package bin forwards its environment when replacing the process", async () => {
   const replacement = new Error("process replaced")
@@ -35,7 +55,7 @@ test("package bin forwards its environment when replacing the process", async ()
   assert.equal(cliCalled, false)
   assert.equal(environmentForwarded, true)
   assert.deepEqual(observed, {
-    args: [EXECUTABLE, ...NODE_22_23_LOW_MEMORY_NODE_ARGUMENTS, CLI, "version"],
+    args: [EXECUTABLE, "--optimize-for-size", CLI, "version"],
     file: EXECUTABLE,
   })
 })

@@ -231,8 +231,7 @@ async function inspectImage(image, packageJson, revision) {
   invariant(config.WorkingDir === "/app", "container working directory is invalid")
   assert.deepEqual(config.Entrypoint, [
     "node",
-    "--no-expose-wasm",
-    "--lite-mode",
+    "--optimize-for-size",
     "dist/cli.js",
   ])
   assert.deepEqual(config.Cmd, ["catalog"])
