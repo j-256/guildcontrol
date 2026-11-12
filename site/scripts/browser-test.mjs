@@ -22,6 +22,7 @@ const STOP_TIMEOUT_MS = 5_000
 const PAGE_TIMEOUT_MS = 30_000
 const ACCESSIBILITY_TIMEOUT_MS = 45_000
 const EXPECTED_NOT_FOUND_CONSOLE = "error: Failed to load resource: the server responded with a status of 404 (Not Found)"
+const CHANNEL_COMPATIBILITY_PATH = "/reference/capabilities/channels-and-roles/channel-type-compatibility/"
 const TEST_PATHS = [
   "/",
   "/start/getting-started/",
@@ -33,6 +34,7 @@ const TEST_PATHS = [
   "/understand/safety-decisions/",
   "/reference/",
   "/reference/capabilities/foundations/safety-model/",
+  CHANNEL_COMPATIBILITY_PATH,
   "/security/",
 ]
 
@@ -236,6 +238,11 @@ async function main() {
         "Comparison matrix does not provide bounded horizontal scrolling on mobile",
       )
       await assertAccessible(page, "/understand/comparison/ mobile")
+
+      await page.goto(`${BASE_URL}${CHANNEL_COMPATIBILITY_PATH}`, { waitUntil: "networkidle" })
+      const compatibilityOverflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
+      assert.ok(compatibilityOverflow <= 1, `Channel compatibility overflows the mobile viewport by ${compatibilityOverflow}px`)
+      await assertAccessible(page, `${CHANNEL_COMPATIBILITY_PATH} mobile`)
 
       await page.goto(`${BASE_URL}/generated/contract-explorer.html#tour`, { waitUntil: "networkidle" })
       const explorerOverflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
