@@ -4265,6 +4265,7 @@ function inviteCreationPlan(
           highRiskPermissionGains: [],
           impact: {
             changedChannels: 1,
+            coverage: { evaluatedChannelCount: 1, status: "complete", totalChannelCount: 1, unsupportedChannels: [] },
             channels: [{
               channelId: request.channelId,
               channelName: "Private invite channel",
@@ -7690,6 +7691,7 @@ function roleDeletionPlan(
     createdAt: "2026-08-23T00:00:00.000Z",
     dependencies: {
       blockerCount: writeRequired ? 0 : memberCount,
+      coverage: { evaluatedChannelCount: 3, status: "complete", totalChannelCount: 3, unsupportedChannels: [] },
       counts: {
         applicationCommandPermissions: 0,
         autoModerationExemptions: 0,
@@ -7820,6 +7822,7 @@ function memberRolePlan(
     highRiskPermissionGains: [],
     impact: {
       changedChannels: action === "none" ? 0 : 1,
+      coverage: { evaluatedChannelCount: 1, status: "complete", totalChannelCount: 1, unsupportedChannels: [] },
       channels: action === "none" ? [] : [{
         channelId: CHANNEL_ID,
         channelType: 0,
@@ -9630,7 +9633,19 @@ function fixtureCommunityActivityResult(): Awaited<
   } as Awaited<ReturnType<CommunityActivityService["analyze"]>>
 }
 
+function partialChannelCoverage(evaluatedChannelCount: number) {
+  return {
+    evaluatedChannelCount,
+    status: "partial" as const,
+    totalChannelCount: evaluatedChannelCount + 1,
+    unsupportedChannels: [{
+      channelId: "900000000000000020", parentChannelId: null, position: 0, type: 20,
+    }],
+  }
+}
+
 function serviceFixture(overrides: {
+  partialChannelCoverage?: boolean
   administrationDrift?: boolean
   administrationError?: Error
   bulkGuildBanDrift?: boolean
@@ -10820,11 +10835,13 @@ function serviceFixture(overrides: {
     },
     async planRoleDeletion(request) {
       calls.roleDeletionPlan += 1
-      return roleDeletionPlan(
+      const plan = roleDeletionPlan(
         request,
         overrides.roleDeletionPlanDigest || DIGEST,
         overrides.roleDeletionWriteRequired ?? true,
       )
+      if (overrides.partialChannelCoverage) plan.dependencies.coverage = partialChannelCoverage(3)
+      return plan
     },
     async executeApplicationEmojiChange(request, planDigest) {
       if (overrides.applicationEmojiError) throw overrides.applicationEmojiError
@@ -11878,10 +11895,14 @@ function serviceFixture(overrides: {
     },
     async planInviteCreation(request) {
       calls.inviteCreationPlan += 1
-      return inviteCreationPlan(
+      const plan = inviteCreationPlan(
         request,
         overrides.inviteCreationPlanDigest || DIGEST,
       )
+      if (overrides.partialChannelCoverage && plan.roleAssignment.kind === "grant") {
+        plan.roleAssignment.impact.coverage = partialChannelCoverage(1)
+      }
+      return plan
     },
     async executeAutoModerationChange(request, planDigest) {
       if (overrides.autoModerationError) throw overrides.autoModerationError
@@ -14673,19 +14694,28 @@ function serviceFixture(overrides: {
     },
     async planMemberRoleChange(request) {
       calls.memberRolePlan += 1
-      return memberRolePlan(
+      const plan = memberRolePlan(
         request,
         overrides.memberRolePlanDigest || DIGEST,
         overrides.memberRoleAction,
       )
+      if (overrides.partialChannelCoverage) {
+        plan.impact.coverage = partialChannelCoverage(1)
+        plan.permission.channelPermissionEscalationSubset = null
+      }
+      return plan
     },
     async planBulkMemberRoleChange(request) {
       calls.bulkMemberRolePlan += 1
-      return bulkMemberRolePlan(
+      const plan = bulkMemberRolePlan(
         request,
         overrides.bulkMemberRolePlanDigest || DIGEST,
         overrides.bulkMemberRoleWriteRequired ?? true,
       )
+      if (overrides.partialChannelCoverage) {
+        for (const target of plan.targets) target.impact.coverage = partialChannelCoverage(1)
+      }
+      return plan
     },
     async planMemberNicknameChange(request) {
       calls.memberNicknamePlan += 1
@@ -37551,6 +37581,42 @@ test("MCP member-role changes plan exact IDs and reject unsafe schemas", async (
   assert.equal(extraField.isError, true)
   assert.equal(invalidRole.isError, true)
   assert.equal(calls.memberRolePlan, 1)
+})
+
+test("MCP role workflows disclose partial channel analysis in signed confirmation", async (context) => {
+  const common = { auditReason: AUDIT_REASON, guildId: GUILD_ID, planDigest: DIGEST }
+  const cases: Array<{ name: string; arguments: Record<string, unknown> }> = [
+    { name: "execute_member_role_change", arguments: {
+      ...common, action: "add", roleId: ROLE_ID, userId: USER_ID, operationKey: MEMBER_ROLE_OPERATION_KEY,
+    } },
+    { name: "execute_bulk_member_role_change", arguments: {
+      ...common, action: "add", roleId: ROLE_ID, userIds: [USER_ID, OTHER_USER_ID], operationKey: BULK_MEMBER_ROLE_OPERATION_KEY,
+    } },
+    { name: "execute_invite_creation", arguments: {
+      ...common, acceptance: { kind: "bearer" }, acknowledgeBearerCapability: true,
+      channelId: CHANNEL_ID, maxAgeSeconds: 3600, maxUses: 1, operationKey: INVITE_CREATION_OPERATION_KEY,
+      outputFile: INVITE_CAPABILITY_OUTPUT_FILE, temporaryMembership: false,
+      roleAssignment: { acknowledgePersistentGrants: true, kind: "grant", roleIds: [ROLE_ID] },
+    } },
+    { name: "execute_role_deletion", arguments: { ...roleDeletionInput(), planDigest: DIGEST } },
+  ]
+  for (const item of cases) await context.test(item.name, async (childContext) => {
+    let message = ""
+    const { client } = await connectedFixture(childContext, {
+      serviceOverrides: { partialChannelCoverage: true },
+      elicitationHandler: async (request) => {
+        message = request.params.message
+        return { action: "accept", content: { approve: true } }
+      },
+    })
+    const result = await client.callTool(item)
+    assert.equal(structuredContent(result).status, "completed")
+    assert.match(message, /Channel analysis coverage: partial/)
+    assert.match(message, /900000000000000020.*type 20/)
+    if (item.name === "execute_member_role_change") {
+      assert.doesNotMatch(message, /Channel permission escalations are a bot subset: true/)
+    }
+  })
 })
 
 test("MCP member-role changes bind signed approval to exact role impact", async (context) => {

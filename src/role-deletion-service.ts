@@ -41,6 +41,11 @@ import {
 } from "./guild-channel-evidence.js"
 import { isGuildChannelTopologyType } from "./guild-channel-types.js"
 import {
+  guildChannelAnalysisCoverage,
+  hasHiddenModeledChannel,
+  type GuildChannelAnalysisCoverage,
+} from "./guild-channel-coverage.js"
+import {
   guildBlueprintRoleRecoveryStateDigest,
 } from "./guild-blueprint-capture-service.js"
 import {
@@ -143,6 +148,7 @@ export interface RoleDeletionReadiness {
   blockers: RoleDeletionBlocker[]
   botId: string
   dependencies: {
+    coverage: GuildChannelAnalysisCoverage
     blockerCount: number
     counts: RoleDeletionDependencyCounts
     digest: string
@@ -275,6 +281,7 @@ interface RoleDependencyInventory {
   autoModerationRules: Array<{ exemptRoleIds: string[]; id: string }>
   channels: Array<{
     id: string
+    opaqueRoleIds?: string[]
     overwrites: Array<{ allow: string; deny: string; id: string; type: 0 | 1 }>
   }>
   emojis: Array<{ id: string; roleIds: string[] }>
@@ -284,6 +291,7 @@ interface RoleDependencyInventory {
 }
 
 interface RoleDeletionState {
+  channelCoverage: GuildChannelAnalysisCoverage
   botMember: DiscordGuildMember
   botPermissions: GuildMemberPermissionResult
   counts: DiscordGuildRoleMemberCounts
@@ -479,6 +487,24 @@ function exactChannelDependencies(
   guildId: string,
 ): RoleDependencyInventory["channels"] {
   return channels.map((channel) => {
+    if (!DIRECT_GUILD_CHANNEL_TYPES.has(channel.type)) {
+      const opaqueRoleIds = new Set<string>()
+      const overwrites = Array.isArray(channel.permission_overwrites) ? channel.permission_overwrites : []
+      if (overwrites.length > DISCORD_LIMITS.channelPermissionOverwrites) {
+        throw evidenceError("Discord returned invalid bounded opaque channel role-reference evidence")
+      }
+      for (const value of overwrites) {
+        const overwrite = recordValue(value)
+        if (overwrite?.type === 0 && snowflake(overwrite.id)) {
+          opaqueRoleIds.add(overwrite.id as string)
+        }
+      }
+      return {
+        id: channel.id,
+        opaqueRoleIds: [...opaqueRoleIds].sort(compareSnowflakes),
+        overwrites: [],
+      }
+    }
     if (
       channel.guild_id !== guildId
       || !snowflake(channel.id)
@@ -486,11 +512,6 @@ function exactChannelDependencies(
       || !Array.isArray(channel.permission_overwrites)
       || channel.permission_overwrites.length > DISCORD_LIMITS.channelPermissionOverwrites
     ) throw evidenceError("Discord returned incomplete channel overwrite evidence")
-    if (!DIRECT_GUILD_CHANNEL_TYPES.has(channel.type)) {
-      throw evidenceError(
-        `Discord channel type ${channel.type} is unsupported for complete role-deletion dependency evidence`,
-      )
-    }
     const keys = new Set<string>()
     const overwrites = channel.permission_overwrites.map((overwrite: DiscordPermissionOverwrite) => {
       const record = recordValue(overwrite)
@@ -734,7 +755,7 @@ function dependencyCounts(
     channelOverwrites: inventory.channels.reduce(
       (count, channel) => count + channel.overwrites.filter((overwrite) => (
         overwrite.type === 0 && overwrite.id === roleId
-      )).length,
+      )).length + (channel.opaqueRoleIds?.includes(roleId) ? 1 : 0),
       0,
     ),
     emojiRestrictions: inventory.emojis.filter((emoji) => emoji.roleIds.includes(roleId)).length,
@@ -960,6 +981,12 @@ function verifyDeletion(
     baseline.dependencies.channels,
     observed.dependencies.channels,
   )
+  const opaqueChannelComparison = compareCollection(
+    baseline.channelCoverage.unsupportedChannels.map((entry) => ({ ...entry, id: entry.channelId })),
+    observed.channelCoverage.unsupportedChannels.map((entry) => ({ ...entry, id: entry.channelId })),
+  )
+  const baselineChannelIds = new Set(baseline.layout.channels.map((entry) => entry.channelId))
+  const addedChannels = observed.layout.channels.filter((entry) => !baselineChannelIds.has(entry.channelId)).length
   const emojiComparison = compareCollection(
     baseline.dependencies.emojis,
     observed.dependencies.emojis,
@@ -1000,6 +1027,7 @@ function verifyDeletion(
     || !memberCountsPreserved
     || !roleOrderPreserved
     || !channelComparison.preserved
+    || !opaqueChannelComparison.preserved
     || !emojiComparison.preserved
     || !integrationComparison.preserved
     || !onboardingComparison.preserved
@@ -1010,7 +1038,7 @@ function verifyDeletion(
   const addedEvidence = {
     applicationCommands: commandComparison.added,
     autoModerationRules: automodComparison.added,
-    channels: channelComparison.added,
+    channels: addedChannels,
     emojis: emojiComparison.added,
     integrations: integrationComparison.added,
     invites: addedInvites,
@@ -1062,7 +1090,7 @@ export class RoleDeletionService {
     if (!this.#layoutSource.layoutEnabled) {
       throw evidenceError("Discord Gateway role-deletion layout is disabled")
     }
-    let supporting: Omit<RoleDeletionState, "httpEvidenceMode" | "layout"> | undefined
+    let supporting: Omit<RoleDeletionState, "channelCoverage" | "httpEvidenceMode" | "layout"> | undefined
     try {
       const channelEvidence = await collectGuildChannelEvidence({
         guildId,
@@ -1125,7 +1153,7 @@ export class RoleDeletionService {
                 guildId,
               ),
               autoModerationRules: exactAutoModerationRules(automodValue, guildId),
-              channels: exactChannelDependencies(channels, guildId),
+              channels: [],
               emojis: exactEmojis(emojiValue),
               integrations: exactIntegrations(integrationValue),
               invites: exactInvites(inviteValue, guildId),
@@ -1139,12 +1167,17 @@ export class RoleDeletionService {
         },
       })
       if (!supporting) throw evidenceError("Discord role-deletion supporting evidence is unavailable")
-      if (
-        channelEvidence.view.metadataCoverage !== "complete"
-        || channelEvidence.view.obfuscatedChannelCount !== 0
-      ) throw evidenceError("Discord role deletion requires a complete unobfuscated channel layout")
+      if (hasHiddenModeledChannel(channelEvidence.layout.channels)) {
+        throw evidenceError("Discord role deletion requires complete metadata for modeled channels")
+      }
+      // Derive channel dependencies only from reconciled, non-obfuscated metadata
       return {
         ...supporting,
+        dependencies: {
+          ...supporting.dependencies,
+          channels: exactChannelDependencies(channelEvidence.channels, guildId),
+        },
+        channelCoverage: guildChannelAnalysisCoverage(channelEvidence.layout.channels),
         httpEvidenceMode: channelEvidence.view.httpMode,
         layout: channelEvidence.layout,
       }
@@ -1178,6 +1211,7 @@ export class RoleDeletionService {
       blockers.push({ count: 1, kind: "role-hierarchy" })
     }
     const dependencyDigest = reviewedPlanDigest(this.#planKey, {
+      channelCoverage: state.channelCoverage,
       dependencies: state.dependencies,
       guildId: state.guild.id,
       targetRoleId: target.id,
@@ -1205,6 +1239,9 @@ export class RoleDeletionService {
       target: roleSnapshot(target),
     })
     const warnings = [
+      ...(state.channelCoverage.status === "partial"
+        ? ["Channel dependency analysis is partial; unsupported channel types may contain role references that this audit cannot inspect"]
+        : []),
       "The target role name is untrusted Discord text and is never persisted by this workflow",
       "Discord exposes no complete search for historical role mentions; deleting the role can leave non-clickable historical mentions",
       "Discord exposes this application's command permission overrides only; overrides owned by other applications are not discoverable",
@@ -1226,6 +1263,7 @@ export class RoleDeletionService {
       blockers,
       botId,
       dependencies: {
+        coverage: state.channelCoverage,
         blockerCount: blockers.reduce((total, blocker) => total + blocker.count, 0),
         counts,
         digest: dependencyDigest,
@@ -1235,7 +1273,7 @@ export class RoleDeletionService {
       layout: {
         channelCount: state.layout.channels.length,
         httpEvidenceMode: state.httpEvidenceMode,
-        obfuscatedChannelCount: 0,
+        obfuscatedChannelCount: state.layout.channels.filter((channel) => channel.obfuscated).length,
         revision: state.layout.revision,
         updatedAt: state.layout.updatedAt as string,
       },

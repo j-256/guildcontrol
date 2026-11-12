@@ -8,6 +8,7 @@ import type {
 } from "../src/activity-log.js"
 import {
   DISCORD_CHANNEL_TYPES,
+  DISCORD_LIMITS,
   SCHEMA_VERSION,
 } from "../src/constants.js"
 import {
@@ -780,16 +781,135 @@ test("role-deletion blocks holders, managed roles, and hierarchy violations", as
   assert.ok(hierarchy.blockers.some((entry) => entry.kind === "role-hierarchy"))
 })
 
-test("role-deletion rejects unmodeled channel dependencies before declaring readiness", async () => {
+test("role-deletion proceeds with explicit partial dependency coverage", async () => {
   for (const type of [20, 99]) {
     const client = new FixtureClient()
-    client.channels = [{ ...channel(GUILD_ID), type }]
+    const opaque = { ...channel(GUILD_ID), id: "700000000000000002", position: 1, type }
+    delete opaque.name
+    delete opaque.permission_overwrites
+    client.channels.push(opaque)
     client.source.snapshot = layoutSnapshot(client.channels, GUILD_ID)
     const { service } = fixture({ client })
-    const expected = new RegExp(`channel type ${type}.*unsupported.*role-deletion dependency`)
-    await assert.rejects(service.audit(APPLICATION_ID, BOT_ID, GUILD_ID, TARGET_ROLE_ID), expected)
-    await assert.rejects(service.plan(APPLICATION_ID, BOT_ID, request()), expected)
+    const audit = await service.audit(APPLICATION_ID, BOT_ID, GUILD_ID, TARGET_ROLE_ID)
+    assert.equal(audit.ready, true)
+    assert.equal(audit.dependencies.coverage.status, "partial")
+    assert.equal(audit.dependencies.coverage.evaluatedChannelCount, 1)
+    assert.deepEqual(audit.dependencies.coverage.unsupportedChannels, [{
+      channelId: opaque.id, parentChannelId: null, position: 1, type,
+    }])
+    const plan = await service.plan(APPLICATION_ID, BOT_ID, request())
+    const result = await service.execute(APPLICATION_ID, BOT_ID, request(), plan.digest)
+    assert.equal(result.status, "completed")
+    assert.equal(result.verification, "match")
+    assert.equal(client.deleteCalls.length, 1)
   }
+})
+
+test("role-deletion partial coverage changes invalidate the reviewed plan", async () => {
+  const client = new FixtureClient()
+  const opaque = { ...channel(GUILD_ID), id: "700000000000000002", position: 1, type: 20 }
+  client.channels.push(opaque)
+  client.source.snapshot = layoutSnapshot(client.channels, GUILD_ID)
+  const { service } = fixture({ client })
+  const plan = await service.plan(APPLICATION_ID, BOT_ID, request())
+  opaque.type = 99
+  client.source.snapshot = layoutSnapshot(client.channels, GUILD_ID)
+  await assert.rejects(
+    service.execute(APPLICATION_ID, BOT_ID, request(), plan.digest),
+    RoleDeletionPlanChangedError,
+  )
+  assert.equal(client.deleteCalls.length, 0)
+})
+
+test("role-deletion ignores hidden opaque metadata and reports partial coverage", async () => {
+  const client = new FixtureClient()
+  const opaque = {
+    ...channel(GUILD_ID), id: "700000000000000002", name: "hidden-opaque-secret", position: 1, type: 20,
+    permission_overwrites: [{ id: TARGET_ROLE_ID, type: 0, allow: "0", deny: "0" }],
+  }
+  client.channels.push(opaque)
+  client.source.snapshot = layoutSnapshot(client.channels, GUILD_ID)
+  client.source.snapshot.channels.find((entry) => entry.channelId === opaque.id)!.obfuscated = true
+  const { service } = fixture({ client })
+  const plan = await service.plan(APPLICATION_ID, BOT_ID, request())
+  assert.equal(plan.status, "planned")
+  assert.equal(plan.dependencies.coverage.status, "partial")
+  assert.equal(plan.layout.obfuscatedChannelCount, 1)
+  assert.equal(plan.dependencies.counts.channelOverwrites, 0)
+  assert.doesNotMatch(JSON.stringify(plan), /hidden-opaque-secret/)
+  const result = await service.execute(APPLICATION_ID, BOT_ID, request(), plan.digest)
+  assert.equal(result.status, "completed")
+})
+
+test("role-deletion keeps explicit overwrite references as blockers on opaque channels", async () => {
+  const client = new FixtureClient()
+  client.channels.push({
+    ...channel(GUILD_ID), id: "700000000000000002", position: 1, type: 20,
+    permission_overwrites: [{ id: TARGET_ROLE_ID, type: 0, allow: "0", deny: "0" }],
+  })
+  client.source.snapshot = layoutSnapshot(client.channels, GUILD_ID)
+  const { service } = fixture({ client })
+  const audit = await service.audit(APPLICATION_ID, BOT_ID, GUILD_ID, TARGET_ROLE_ID)
+  assert.equal(audit.ready, false)
+  assert.equal(audit.dependencies.counts.channelOverwrites, 1)
+  assert.equal(audit.dependencies.coverage.status, "partial")
+})
+
+test("role-deletion bounds opaque role-reference inspection", async () => {
+  const client = new FixtureClient()
+  client.channels.push({
+    ...channel(GUILD_ID), id: "700000000000000002", position: 1, type: 20,
+    permission_overwrites: Array.from({ length: DISCORD_LIMITS.channelPermissionOverwrites + 1 }, () => ({
+      id: TARGET_ROLE_ID, type: 0, allow: "0", deny: "0",
+    })),
+  })
+  client.source.snapshot = layoutSnapshot(client.channels, GUILD_ID)
+  await assert.rejects(
+    fixture({ client }).service.plan(APPLICATION_ID, BOT_ID, request()),
+    /bounded opaque channel role-reference/,
+  )
+})
+
+test("role-deletion counts added opaque topology once regardless of metadata visibility", async () => {
+  for (const obfuscated of [false, true]) {
+    const client = new FixtureClient()
+    const opaque = { ...channel(GUILD_ID), id: "700000000000000002", position: 1, type: 20 }
+    client.afterDelete = () => {
+      client.channels.push(opaque)
+      client.source.snapshot = layoutSnapshot(client.channels, GUILD_ID)
+      client.source.snapshot.channels.find((entry) => entry.channelId === opaque.id)!.obfuscated = obfuscated
+    }
+    const { service } = fixture({ client })
+    const plan = await service.plan(APPLICATION_ID, BOT_ID, request())
+    const result = await service.execute(APPLICATION_ID, BOT_ID, request(), plan.digest)
+    assert.equal(result.status, "completed-with-drift")
+    assert.equal(result.verification, "drift")
+    assert.equal(result.addedEvidence.channels, 1)
+    assert.equal(client.deleteCalls.length, 1)
+  }
+})
+
+test("role-deletion detects opaque topology drift after dispatch", async () => {
+  const guildId = "980000000000000020"
+  const client = new FixtureClient(guildId)
+  const opaque = { ...channel(guildId), id: "700000000000000002", position: 1, type: 20 }
+  client.channels.push(opaque)
+  client.source.snapshot = layoutSnapshot(client.channels, guildId)
+  client.afterDelete = () => {
+    opaque.position = 2
+    client.source.snapshot = layoutSnapshot(client.channels, guildId)
+  }
+  const { service } = fixture({ client })
+  const input = request({ guildId })
+  const plan = await service.plan(APPLICATION_ID, BOT_ID, input)
+  await assert.rejects(
+    service.execute(APPLICATION_ID, BOT_ID, input, plan.digest),
+    (error: unknown) => {
+      assert.equal(executionResult(error).status, "uncertain")
+      return true
+    },
+  )
+  assert.equal(client.deleteCalls.length, 1)
 })
 
 test("role-deletion fails closed on unknown and incomplete evidence", async () => {

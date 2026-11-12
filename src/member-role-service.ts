@@ -36,9 +36,15 @@ import {
   collectGuildChannelEvidence,
   DIRECT_GUILD_CHANNEL_TYPES,
   GuildChannelEvidenceError,
+  reconcileGuildChannelHttpEvidence,
   type GuildChannelEvidenceView,
 } from "./guild-channel-evidence.js"
 import { isGuildChannelTopologyType } from "./guild-channel-types.js"
+import {
+  guildChannelAnalysisCoverage,
+  hasHiddenModeledChannel,
+  type GuildChannelAnalysisCoverage,
+} from "./guild-channel-coverage.js"
 import {
   type OperationReceipt,
   type OperationStore,
@@ -155,6 +161,7 @@ export interface MemberRoleChangePlan {
   highRiskPermissions: DiscordPermissionName[]
   highRiskPermissionGains: DiscordPermissionName[]
   impact: {
+    coverage: GuildChannelAnalysisCoverage
     changedChannels: number
     channels: MemberRoleChannelImpact[]
     evaluatedChannels: number
@@ -174,7 +181,7 @@ export interface MemberRoleChangePlan {
     botEffectivePermissions: string
     botHighestRoleIds: string[]
     botHighestRolePosition: number
-    channelPermissionEscalationSubset: boolean
+    channelPermissionEscalationSubset: boolean | null
     channelOverwriteUnknownPermissionBits: string
     guildRoleUnknownPermissionBits: string
     guildManageRoles: boolean
@@ -232,6 +239,7 @@ export interface MemberRoleServiceOptions {
 }
 
 interface MemberRoleState {
+  channelCoverage: GuildChannelAnalysisCoverage
   afterMember: DiscordGuildMember
   afterPermissions: GuildMemberPermissionResult
   beforePermissions: GuildMemberPermissionResult
@@ -259,6 +267,7 @@ interface MemberRoleCommonDiscordEvidence {
 }
 
 interface MemberRoleCommonRawEvidence extends MemberRoleCommonDiscordEvidence {
+  channelCoverage: GuildChannelAnalysisCoverage
   channelEvidence: GuildChannelEvidenceView
 }
 
@@ -498,6 +507,8 @@ function exactChannels(
       || ids.has(channel.id)
       || !Number.isSafeInteger(channel.type)
       || !isGuildChannelTopologyType(channel.type)
+      || !Number.isSafeInteger(channel.position)
+      || (channel.position as number) < 0
       || channel.guild_id !== guildId
       || (
         channel.parent_id !== undefined
@@ -509,14 +520,9 @@ function exactChannels(
         "Discord returned incomplete or mismatched member-role channel evidence",
       )
     }
-    if (!DIRECT_GUILD_CHANNEL_TYPES.has(channel.type)) {
-      throw new MemberRoleStateError(
-        `Discord channel type ${channel.type} is unsupported for complete member-role permission impact; this build retains its topology but cannot evaluate its permissions`,
-      )
-    }
     ids.add(channel.id)
-    canonicalOverwrites(channel)
-    return channel as DirectGuildChannel
+    if (DIRECT_GUILD_CHANNEL_TYPES.has(channel.type)) canonicalOverwrites(channel)
+    return channel
   })
   const channelsById = new Map(result.map((channel) => [channel.id, channel]))
   for (const channel of result) {
@@ -533,6 +539,7 @@ function exactChannels(
         )
       }
     }
+    if (!DIRECT_GUILD_CHANNEL_TYPES.has(channel.type)) continue
     for (const overwrite of canonicalOverwrites(channel)) {
       if (overwrite.type === 0 && !roleIds.has(overwrite.id)) {
         throw new MemberRoleStateError(
@@ -541,7 +548,9 @@ function exactChannels(
       }
     }
   }
-  return result.sort((left, right) => compareSnowflakes(left.id, right.id))
+  return result
+    .filter((channel) => DIRECT_GUILD_CHANNEL_TYPES.has(channel.type))
+    .sort((left, right) => compareSnowflakes(left.id, right.id)) as DirectGuildChannel[]
 }
 
 function assertCompletePermissions(
@@ -1057,6 +1066,15 @@ export class MemberRoleService {
           return currentEvidence.channels
         },
       })
+      if (baselineEvidence) {
+        // Bulk baseline and current evidence must use the same visibility projection
+        baselineEvidence = {
+          ...baselineEvidence,
+          channels: reconcileGuildChannelHttpEvidence(
+            baselineEvidence.channels, first.guildId, channelEvidence.layout,
+          ).channels,
+        }
+      }
     } catch (error) {
       if (error instanceof GuildChannelEvidenceError) {
         throw new MemberRoleStateError(
@@ -1069,19 +1087,21 @@ export class MemberRoleService {
     if (!currentEvidence || !targetMembers || targetMembers.length !== requests.length) {
       throw new MemberRoleStateError("Discord member-role supporting evidence is unavailable")
     }
-    if (channelEvidence.view.obfuscatedChannelCount > 0) {
+    if (hasHiddenModeledChannel(channelEvidence.layout.channels)) {
       throw new MemberRoleStateError(
         "Discord member-role changes require complete metadata for every direct guild channel",
       )
     }
     const current: MemberRoleCommonRawEvidence = {
       ...currentEvidence,
+      channelCoverage: guildChannelAnalysisCoverage(channelEvidence.layout.channels),
       channelEvidence: channelEvidence.view,
       channels: channelEvidence.channels,
     }
     const baseline: MemberRoleCommonRawEvidence | null = baselineEvidence
       ? {
           ...baselineEvidence,
+          channelCoverage: current.channelCoverage,
           channelEvidence: channelEvidence.view,
         }
       : null
@@ -1169,6 +1189,7 @@ export class MemberRoleService {
       request.guildId,
       new Set(roles.map((role) => role.id)),
     )
+    const channelCoverage = evidence.channelCoverage
     let botPermissions: GuildMemberPermissionResult
     let beforePermissions: GuildMemberPermissionResult
     try {
@@ -1297,6 +1318,7 @@ export class MemberRoleService {
 
     return {
       afterMember,
+      channelCoverage,
       afterPermissions,
       beforePermissions,
       botMember,
@@ -1357,6 +1379,7 @@ export class MemberRoleService {
         highestRolePosition: state.botPermissions.highestRolePosition,
       },
       channelEvidence: state.channelEvidence,
+      channelCoverage: state.channelCoverage,
       channels: channelSnapshot(state.channels),
       guild: {
         id: state.guild.id,
@@ -1453,6 +1476,7 @@ export class MemberRoleService {
       highRiskPermissions,
       highRiskPermissionGains: permissionGains,
       impact: {
+        coverage: state.channelCoverage,
         changedChannels: state.impact.length,
         channels: state.impact,
         evaluatedChannels: state.channels.length,
@@ -1472,7 +1496,7 @@ export class MemberRoleService {
         botEffectivePermissions: state.botPermissions.effectivePermissions,
         botHighestRoleIds: state.botPermissions.highestRoleIds,
         botHighestRolePosition: state.botPermissions.highestRolePosition,
-        channelPermissionEscalationSubset: true,
+        channelPermissionEscalationSubset: state.channelCoverage.status === "complete" ? true : null,
         channelOverwriteUnknownPermissionBits:
           state.channelOverwriteUnknownPermissionBits.toString(),
         guildRoleUnknownPermissionBits:
@@ -1524,7 +1548,10 @@ export class MemberRoleService {
         ...(alreadyCurrent && !state.rolePermissionsSubset
           ? ["No write is required, but the selected role contains permissions outside the connector bot's effective grantable set"]
           : []),
-        "Permission impact covers every direct guild channel proven by a continuity-stable Gateway layout; active threads are not included in that inventory",
+        ...(state.channelCoverage.status === "partial"
+          ? ["Channel impact and escalation analysis is partial; unsupported channel types are retained in coverage but their effects are not evaluated"]
+          : []),
+        "Permission impact covers modeled direct guild channels in a continuity-stable Gateway layout; active threads are not included in that inventory",
         "Same-member serialization is process-local; do not run multiple connector processes with overlapping member-role scope",
         "The operation key is one-shot and cannot be retried after reservation, including after an uncertain outcome",
         "This workflow performs one exact role add or remove and never replaces the member's complete role array, retries, or rolls back",

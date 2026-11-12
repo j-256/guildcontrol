@@ -177,7 +177,7 @@ export function sameGatewayChannelLayout(
     && stableString(left.channels) === stableString(right.channels)
 }
 
-function reconcileHttpChannels<TChannel extends DiscordChannel>(
+export function reconcileGuildChannelHttpEvidence<TChannel extends DiscordChannel>(
   value: readonly TChannel[],
   guildId: string,
   layout: GatewayChannelLayoutSnapshot,
@@ -263,7 +263,7 @@ export async function collectGuildChannelEvidence<
   if (!sameGatewayChannelLayout(before, after)) {
     throw evidenceError("Discord Gateway channel layout changed during evidence collection")
   }
-  const reconciled = reconcileHttpChannels(rawChannels, options.guildId, after)
+  const reconciled = reconcileGuildChannelHttpEvidence(rawChannels, options.guildId, after)
   const obfuscatedChannelCount = after.channels.filter((channel) => channel.obfuscated).length
   return {
     channels: reconciled.channels,
