@@ -117,5 +117,16 @@
       "Preserve the selected Docker connection during container verification.",
       "Document dependency review and candidate artifact preparation."
     ]
+  },
+  "2.3.8": {
+    "version": "2.3.8",
+    "paragraphs": [
+      "GuildControl MCP 2.3.8 repairs default-runtime HTTP compatibility and keeps guild administration available when Discord introduces unfamiliar channel types. Unsupported channel semantics remain explicit coverage gaps, and GuildControl uses bot authentication only."
+    ],
+    "highlights": [
+      "Restore native HTTP across local, npm, MCPB, and container launch paths while preserving the selected standard runtime in child processes.",
+      "Retain unfamiliar guild channel types as exact topology without granting them unsupported operations.",
+      "Allow reviewed single and bulk member-role changes, invite role grants, and role deletion with signed partial channel analysis while retaining required authorization, known-risk checks, and discovered dependency blockers."
+    ]
   }
 }
