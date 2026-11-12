@@ -110,6 +110,7 @@ interface FixtureState {
   inviteRoleIds: string[]
   layoutComplete: boolean
   layoutObfuscated: boolean
+  obfuscatedChannelIds: Set<string>
   layoutState: "ready" | "invalidated"
   member: DiscordGuildMember
   provideLayoutSource: boolean
@@ -221,6 +222,7 @@ async function fixture(
     inviteRoleIds: [],
     layoutComplete: true,
     layoutObfuscated: false,
+    obfuscatedChannelIds: new Set(),
     layoutState: "ready",
     member: {
       roles: [BOT_ROLE_ID],
@@ -363,7 +365,7 @@ async function fixture(
       return {
         channels: (state.channelInventory ?? [state.channel]).map((channel) => ({
           channelId: channel.id,
-          obfuscated: state.layoutObfuscated,
+          obfuscated: state.layoutObfuscated || state.obfuscatedChannelIds.has(channel.id),
           parentChannelId: channel.parent_id ?? null,
           position: channel.position ?? 0,
           type: channel.type,
@@ -843,25 +845,65 @@ test("invite role assignment fails closed on policy and Gateway evidence", async
   }
 })
 
-test("invite role assignment identifies unmodeled channel permission impact", async (context) => {
+test("invite role assignment proceeds with explicit partial channel impact", async (context) => {
   for (const type of [20, 99]) {
     const opaqueChannel = { ...channel(), id: "500000000000000002", type }
     delete opaqueChannel.name
+    delete opaqueChannel.permission_overwrites
     const setup = await fixture(context, roleGrantState({
       channelInventory: [channel(), opaqueChannel],
     }))
-    await assert.rejects(
-      setup.service.planCreation(APPLICATION_ID, BOT_ID, request(setup.outputFile, {
+    const input = request(setup.outputFile, {
         roleAssignment: {
           acknowledgePersistentGrants: true,
           kind: "grant",
           roleIds: [GRANTED_ROLE_ID],
         },
-      })),
-      new RegExp(`channel type ${type}.*unsupported.*invite role-assignment permission impact`),
-    )
-    assert.equal(setup.events.some((event) => event.startsWith("write:")), false)
+    })
+    const plan = await setup.service.planCreation(APPLICATION_ID, BOT_ID, input)
+    assert.equal(plan.roleAssignment.kind, "grant")
+    if (plan.roleAssignment.kind !== "grant") throw new Error("Expected grant")
+    assert.equal(plan.roleAssignment.impact.coverage.status, "partial")
+    assert.equal(plan.roleAssignment.impact.evaluatedChannels, 1)
+    assert.deepEqual(plan.roleAssignment.impact.coverage.unsupportedChannels, [{
+      channelId: opaqueChannel.id, parentChannelId: null, position: 0, type,
+    }])
+    const result = await setup.service.executeCreation(APPLICATION_ID, BOT_ID, input, plan.digest)
+    assert.equal(result.status, "completed")
+    assert.equal(setup.createInputs.length, 1)
   }
+})
+
+test("invite role grants tolerate hidden opaque metadata without using it", async (context) => {
+  const opaque = { ...channel(), id: "500000000000000002", name: "hidden-opaque-secret", type: 20 }
+  const setup = await fixture(context, roleGrantState({
+    channelInventory: [channel(), opaque], obfuscatedChannelIds: new Set([opaque.id]),
+  }))
+  const input = request(setup.outputFile, {
+    roleAssignment: { acknowledgePersistentGrants: true, kind: "grant", roleIds: [GRANTED_ROLE_ID] },
+  })
+  const plan = await setup.service.planCreation(APPLICATION_ID, BOT_ID, input)
+  if (plan.roleAssignment.kind !== "grant") throw new Error("Expected grant")
+  assert.equal(plan.roleAssignment.impact.coverage.status, "partial")
+  assert.equal(plan.roleAssignment.impact.coverage.totalChannelCount, 2)
+  assert.equal(plan.roleAssignment.channelEvidence.obfuscatedChannelCount, 1)
+  assert.doesNotMatch(JSON.stringify(plan), /hidden-opaque-secret/)
+  assert.equal((await setup.service.executeCreation(APPLICATION_ID, BOT_ID, input, plan.digest)).status, "completed")
+})
+
+test("invite role assignment rejects changed unsupported coverage before creating an invite", async (context) => {
+  const opaque = { ...channel(), id: "500000000000000002", type: 20 }
+  const setup = await fixture(context, roleGrantState({ channelInventory: [channel(), opaque] }))
+  const input = request(setup.outputFile, {
+    roleAssignment: { acknowledgePersistentGrants: true, kind: "grant", roleIds: [GRANTED_ROLE_ID] },
+  })
+  const plan = await setup.service.planCreation(APPLICATION_ID, BOT_ID, input)
+  setup.state.channelInventory = [channel(), { ...opaque, type: 99 }]
+  await assert.rejects(
+    setup.service.executeCreation(APPLICATION_ID, BOT_ID, input, plan.digest),
+    InviteCreationPlanChangedError,
+  )
+  assert.equal(setup.createInputs.length, 0)
 })
 
 test("invite role assignment enforces permission, hierarchy, and role evidence", async (context) => {

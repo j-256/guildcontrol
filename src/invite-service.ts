@@ -51,6 +51,11 @@ import {
   type GuildChannelEvidenceView,
 } from "./guild-channel-evidence.js"
 import { isGuildChannelTopologyType } from "./guild-channel-types.js"
+import {
+  guildChannelAnalysisCoverage,
+  hasHiddenModeledChannel,
+  type GuildChannelAnalysisCoverage,
+} from "./guild-channel-coverage.js"
 import { stableString } from "./normalize.js"
 import {
   type OperationReceipt,
@@ -181,7 +186,7 @@ export interface NormalizedInviteDeletionRequest extends InviteDeletionRequest {
 
 export interface InviteChannelProjection {
   id: string
-  name: string
+  name: string | null
   type: number
 }
 
@@ -534,6 +539,7 @@ type InviteRoleAssignmentReview =
       channelEvidence: GuildChannelEvidenceView
       highRiskPermissionGains: DiscordPermissionName[]
       impact: {
+        coverage: GuildChannelAnalysisCoverage
         changedChannels: number
         channels: InviteRoleChannelImpact[]
         evaluatedChannels: number
@@ -1046,7 +1052,8 @@ function exactChannels(
       || Array.isArray(channel)
       || !positiveSnowflake(channel.id)
       || channel.guild_id !== guildId
-      || !validText(channel.name, DISCORD_LIMITS.channelNameCharacters)
+      || (DIRECT_GUILD_CHANNEL_TYPES.has(channel.type)
+        && !validText(channel.name, DISCORD_LIMITS.channelNameCharacters))
       || !Number.isSafeInteger(channel.type)
       || channel.type < 0
       || ids.has(channel.id)
@@ -1056,7 +1063,7 @@ function exactChannels(
     ids.add(channel.id)
     channels.push({
       id: channel.id,
-      name: channel.name,
+      name: DIRECT_GUILD_CHANNEL_TYPES.has(channel.type) ? channel.name as string : null,
       type: channel.type,
     })
   }
@@ -1232,6 +1239,8 @@ function exactInviteRoleImpactChannels(
       || channelIds.has(channel.id)
       || channel.guild_id !== guildId
       || !isGuildChannelTopologyType(channel.type)
+      || !Number.isSafeInteger(channel.position)
+      || (channel.position as number) < 0
       || (
         DIRECT_GUILD_CHANNEL_TYPES.has(channel.type)
         && !validText(channel.name, DISCORD_LIMITS.channelNameCharacters)
@@ -1246,20 +1255,16 @@ function exactInviteRoleImpactChannels(
         "Discord returned incomplete or mismatched invite role-assignment channel evidence",
       )
     }
-    if (!DIRECT_GUILD_CHANNEL_TYPES.has(channel.type)) {
-      throw evidenceError(
-        `Discord channel type ${channel.type} is unsupported for complete invite role-assignment permission impact; this build retains its topology but cannot evaluate its permissions`,
-      )
-    }
     channelIds.add(channel.id)
-    for (const overwrite of canonicalInviteRoleOverwrites(channel)) {
+    for (const overwrite of DIRECT_GUILD_CHANNEL_TYPES.has(channel.type)
+      ? canonicalInviteRoleOverwrites(channel) : []) {
       if (overwrite.type === 0 && !roleIds.has(overwrite.id)) {
         throw evidenceError(
           "Discord returned an unresolved invite role-assignment role overwrite",
         )
       }
     }
-    return channel as InviteRoleImpactChannel
+    return channel
   })
   const channelsById = new Map(channels.map((channel) => [channel.id, channel]))
   for (const channel of channels) {
@@ -1275,7 +1280,8 @@ function exactInviteRoleImpactChannels(
       }
     }
   }
-  return channels.sort((left, right) => compareSnowflakes(left.id, right.id))
+  return channels.filter((channel) => DIRECT_GUILD_CHANNEL_TYPES.has(channel.type))
+    .sort((left, right) => compareSnowflakes(left.id, right.id)) as InviteRoleImpactChannel[]
 }
 
 function inviteRolePermissionDecision(
@@ -1466,6 +1472,7 @@ function inviteRoleChannelSnapshot(channels: readonly InviteRoleImpactChannel[])
 }
 
 function buildInviteRoleAssignmentReview(options: {
+  coverage: GuildChannelAnalysisCoverage
   botMember: DiscordGuildMember
   channelEvidence: GuildChannelEvidenceView
   channels: readonly InviteRoleImpactChannel[]
@@ -1581,6 +1588,7 @@ function buildInviteRoleAssignmentReview(options: {
     channelEvidence: options.channelEvidence,
     highRiskPermissionGains,
     impact: {
+      coverage: options.coverage,
       changedChannels: impact.length,
       channels: impact,
       evaluatedChannels: options.channels.length,
@@ -2289,6 +2297,7 @@ export class InviteService {
     let rawRoles: DiscordRole[]
     let rawChannels: DiscordChannel[]
     let channelEvidence: GuildChannelEvidenceView | undefined
+    let channelCoverage: GuildChannelAnalysisCoverage | undefined
     if (request.roleAssignment.kind === "grant") {
       if (!this.#layoutSource) {
         throw evidenceError(
@@ -2315,7 +2324,7 @@ export class InviteService {
             return channels
           },
         })
-        if (evidence.view.obfuscatedChannelCount > 0) {
+        if (hasHiddenModeledChannel(evidence.layout.channels)) {
           throw evidenceError(
             "Discord invite role assignment requires complete metadata for every direct guild channel",
           )
@@ -2330,6 +2339,7 @@ export class InviteService {
         rawRoles = supportingEvidence.roles
         rawChannels = evidence.channels
         channelEvidence = evidence.view
+        channelCoverage = guildChannelAnalysisCoverage(evidence.layout.channels)
       } catch (error) {
         if (error instanceof GuildChannelEvidenceError) {
           throw new InviteEvidenceError(
@@ -2371,6 +2381,7 @@ export class InviteService {
     )
     const roleAssignment = request.roleAssignment.kind === "grant"
       ? buildInviteRoleAssignmentReview({
+          coverage: channelCoverage as GuildChannelAnalysisCoverage,
           botMember,
           channelEvidence: channelEvidence as GuildChannelEvidenceView,
           channels: roleGrantChannels,
@@ -2520,6 +2531,9 @@ export class InviteService {
       roles: state.roles.length,
     }
     const warnings = [
+      ...(state.roleAssignment.kind === "grant" && state.roleAssignment.impact.coverage.status === "partial"
+        ? ["Role impact and escalation analysis is partial; unsupported channel types are retained in coverage but their effects are not evaluated"]
+        : []),
       ...(state.access.botAdministrator
         ? [
             request.roleAssignment.kind === "grant"

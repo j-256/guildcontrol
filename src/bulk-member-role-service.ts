@@ -683,9 +683,9 @@ export class BulkMemberRoleService {
         ...(first.plan.highRiskPermissions.length > 0
           ? [`Selected role contains high-risk permissions: ${first.plan.highRiskPermissions.join(", ")}`]
           : []),
-        "Each exact target passed the complete single-member permission and hierarchy analysis",
+        "Each exact target passed the mandatory single-member authorization, modeled permission, and hierarchy checks",
         "Batch planning requires matching common authority evidence before and after bounded target-member reads",
-        "Permission impact covers every direct guild channel proven by continuity-stable layout evidence; active threads are outside that inventory",
+        "Permission impact covers modeled direct guild channels in continuity-stable layout evidence; each target discloses unsupported coverage and active threads are outside that inventory",
         "Username and guild and role names are transient untrusted Discord content and are never persisted",
         "Targets execute sequentially by canonical user ID with one non-retried exact role endpoint and readback each",
         "The first failed, uncertain, drifting, or incomplete checkpoint stops the batch and no target is rolled back",

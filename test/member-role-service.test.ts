@@ -41,6 +41,7 @@ const BOT_ROLE_ID = "400000000000000001"
 const USER_ID = "500000000000000001"
 const ROLE_ID = "600000000000000001"
 const CHANNEL_ID = "700000000000000001"
+const OPAQUE_CHANNEL_ID = "700000000000000002"
 const AUDIT_REASON = "Reviewed support role assignment"
 const OPERATION_KEY = "member-role-operation-0001"
 const NOW = "2026-08-21T00:00:00.000Z"
@@ -1127,15 +1128,103 @@ test("member-role planning enforces local scope, identities, target state, and h
   )
 })
 
-test("member-role planning identifies unmodeled channel permission impact", async () => {
+test("member-role changes proceed with explicit partial channel impact", async () => {
   for (const type of [20, 99]) {
-    const setup = fixture({ state: { channels: [channel(CHANNEL_ID, { type })] } })
-    await assert.rejects(
-      setup.service.plan(APPLICATION_ID, BOT_ID, request()),
-      new RegExp(`channel type ${type}.*unsupported.*member-role permission impact`),
-    )
-    assert.equal(setup.events.some((event) => event.startsWith("write:")), false)
+    for (const action of ["add", "remove"] as const) {
+      const opaque = channel(OPAQUE_CHANNEL_ID, { position: 1, type })
+      delete opaque.name
+      delete opaque.permission_overwrites
+      const setup = fixture({ state: { channels: [channel(), opaque] } })
+      setup.state.targetMember.roles = action === "remove" ? [ROLE_ID] : []
+      const input = request({ action })
+      const plan = await setup.service.plan(APPLICATION_ID, BOT_ID, input)
+      assert.equal(plan.impact.coverage.status, "partial")
+      assert.equal(plan.impact.evaluatedChannels, 1)
+      assert.equal(plan.impact.coverage.totalChannelCount, 2)
+      assert.deepEqual(plan.impact.coverage.unsupportedChannels, [{
+        channelId: OPAQUE_CHANNEL_ID, parentChannelId: null, position: 1, type,
+      }])
+      assert.equal(plan.permission.channelPermissionEscalationSubset, null)
+      const result = await setup.service.execute(APPLICATION_ID, BOT_ID, input, plan.digest)
+      assert.equal(result.status, "completed")
+      assert.equal(setup.events.filter((event) => event === `write:${action}`).length, 1)
+    }
   }
+})
+
+test("member-role partial coverage is bound into single and bulk reviewed evidence", async () => {
+  const opaque = channel(OPAQUE_CHANNEL_ID, { position: 1, type: 20 })
+  const secondUserId = "500000000000000002"
+  const setup = fixture({
+    policy: policy({ batchEnabled: true }),
+    state: {
+      channels: [channel(), opaque],
+      targetMembers: { [secondUserId]: { roles: [], user: { id: secondUserId, username: "second" } } },
+    },
+  })
+  const batch = await setup.service.planBatchForBulk(
+    BULK_MEMBER_ROLE_AUTHORITY, APPLICATION_ID, BOT_ID,
+    [request(), request({ operationKey: "member-role-operation-0002", userId: secondUserId })],
+  )
+  assert.equal(batch.plans[0]?.impact.coverage.status, "partial")
+  const plan = await setup.service.plan(APPLICATION_ID, BOT_ID, request())
+  for (const change of [
+    { type: 99 },
+    { position: 2 },
+    { id: "700000000000000003" },
+  ]) {
+    setup.state.channels = [channel(), { ...opaque, ...change }]
+    const changed = await setup.service.plan(APPLICATION_ID, BOT_ID, request())
+    assert.notEqual(changed.digest, plan.digest)
+    assert.notEqual(changed.commonEvidenceDigest, plan.commonEvidenceDigest)
+    await assert.rejects(
+      setup.service.execute(APPLICATION_ID, BOT_ID, request(), plan.digest),
+      MemberRolePlanChangedError,
+    )
+  }
+  assert.equal(setup.events.some((event) => event.startsWith("write:")), false)
+  setup.state.channels = [channel(), opaque]
+  const bulkResult = await setup.service.executeForBulk(
+    BULK_MEMBER_ROLE_AUTHORITY, APPLICATION_ID, BOT_ID, request(), batch.plans[0]!.digest,
+  )
+  assert.equal(bulkResult.status, "completed")
+})
+
+test("member-role partial coverage does not bypass known-channel escalation checks", async () => {
+  const setup = fixture({ state: { channels: [
+    channel(CHANNEL_ID, { permission_overwrites: [{
+      id: ROLE_ID, type: 0, allow: DISCORD_PERMISSIONS.MANAGE_MESSAGES.toString(), deny: "0",
+    }] }),
+    channel(OPAQUE_CHANNEL_ID, { position: 1, type: 20 }),
+  ] } })
+  await assert.rejects(
+    setup.service.plan(APPLICATION_ID, BOT_ID, request()),
+    /cannot grant channel permission MANAGE_MESSAGES/,
+  )
+  assert.equal(setup.events.some((event) => event.startsWith("write:")), false)
+})
+
+test("member-role changes tolerate hidden opaque metadata without using it", async () => {
+  const secondUserId = "500000000000000002"
+  const setup = fixture({ policy: policy({ batchEnabled: true }), state: {
+    channels: [channel(), channel(OPAQUE_CHANNEL_ID, { name: "hidden-opaque-secret", position: 1, type: 20 })],
+    obfuscatedChannelIds: new Set([OPAQUE_CHANNEL_ID]),
+    targetMembers: { [secondUserId]: { roles: [], user: { id: secondUserId, username: "second" } } },
+  } })
+  const batch = await setup.service.planBatchForBulk(
+    BULK_MEMBER_ROLE_AUTHORITY, APPLICATION_ID, BOT_ID,
+    [request(), request({ userId: secondUserId, operationKey: "member-role-hidden-operation-0002" })],
+  )
+  assert.equal(batch.plans[0]?.impact.coverage.totalChannelCount, 2)
+  assert.equal(batch.plans[0]?.commonEvidenceDigest, batch.baselineCommonEvidenceDigest)
+  const plan = await setup.service.plan(APPLICATION_ID, BOT_ID, request())
+  assert.equal(plan.impact.coverage.status, "partial")
+  assert.equal(plan.impact.coverage.totalChannelCount, 2)
+  assert.equal(plan.impact.coverage.unsupportedChannels[0]?.channelId, OPAQUE_CHANNEL_ID)
+  assert.equal(plan.channelEvidence.obfuscatedChannelCount, 1)
+  assert.doesNotMatch(JSON.stringify(plan), /hidden-opaque-secret/)
+  const result = await setup.service.execute(APPLICATION_ID, BOT_ID, request(), plan.digest)
+  assert.equal(result.status, "completed")
 })
 
 test("member-role planning fails closed on malformed or excessive impact evidence", async () => {

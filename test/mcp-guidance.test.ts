@@ -457,6 +457,7 @@ function guidanceService(options: {
         botId: BOT_ID,
         dependencies: {
           blockerCount: 0,
+          coverage: { evaluatedChannelCount: 2, status: "complete", totalChannelCount: 2, unsupportedChannels: [] },
           counts: {
             applicationCommandPermissions: 0,
             autoModerationExemptions: 0,

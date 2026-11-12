@@ -161,6 +161,7 @@ function memberPlan(
     highRiskPermissionGains: [],
     impact: {
       changedChannels: alreadyCurrent ? 0 : 1,
+      coverage: { evaluatedChannelCount: 1, status: "complete", totalChannelCount: 1, unsupportedChannels: [] },
       channels: alreadyCurrent ? [] : [{
         channelId: CHANNEL_ID,
         channelType: 0,
