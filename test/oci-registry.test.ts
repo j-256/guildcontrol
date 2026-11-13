@@ -54,7 +54,7 @@ interface OciRegistryModule {
 
 const modulePath = pathToFileURL(resolve("scripts/oci-registry.mjs")).href
 const oci = await import(modulePath) as OciRegistryModule
-const VERSION = "2.3.8"
+const VERSION = "2.3.9"
 const REVISION = "a".repeat(40)
 const IMAGE_CONFIG_MEDIA_TYPE = "application/vnd.oci.image.config.v1+json"
 const GHCR_BLOB_CDN_ORIGIN = "https://pkg-containers.githubusercontent.com"
@@ -275,13 +275,13 @@ function validSpdxStatement(): object {
 }
 
 test("parses only the exact project image with a stable version tag", () => {
-  assert.deepEqual(oci.parseOciReference("ghcr.io/j-256/guildcontrol:2.3.8"), {
+  assert.deepEqual(oci.parseOciReference("ghcr.io/j-256/guildcontrol:2.3.9"), {
     name: "ghcr.io/j-256/guildcontrol",
     repository: "j-256/guildcontrol",
-    tag: "2.3.8",
+    tag: "2.3.9",
   })
   assert.throws(() => oci.parseOciReference("ghcr.io/j-256/guildcontrol:latest"))
-  assert.throws(() => oci.parseOciReference("docker.io/j-256/guildcontrol:2.3.8"))
+  assert.throws(() => oci.parseOciReference("docker.io/j-256/guildcontrol:2.3.9"))
 })
 
 test("inspects an exact private tag through scoped registry authentication", async () => {
@@ -314,7 +314,7 @@ test("inspects an exact private tag through scoped registry authentication", asy
   }) as typeof fetch
   try {
     assert.deepEqual(await oci.inspectAuthenticatedOciTag({
-      reference: "ghcr.io/j-256/guildcontrol:2.3.8",
+      reference: "ghcr.io/j-256/guildcontrol:2.3.9",
       token: "credential-value",
       username: "release-actor",
     }), {
@@ -344,7 +344,7 @@ test("rejects an oversized registry token response while streaming", async () =>
   try {
     await assert.rejects(
       oci.inspectAuthenticatedOciTag({
-        reference: "ghcr.io/j-256/guildcontrol:2.3.8",
+        reference: "ghcr.io/j-256/guildcontrol:2.3.9",
         token: "credential-value",
         username: "release-actor",
       }),

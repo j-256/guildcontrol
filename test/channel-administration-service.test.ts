@@ -7,6 +7,7 @@ import type {
 } from "../src/activity-log.js"
 import {
   ChannelAdministrationService,
+  logicalChannelNameKey,
   normalizeChannelCreationRequest,
   type ChannelAdministrationServiceOptions,
   type ChannelCreationRequest,
@@ -41,6 +42,16 @@ const CREATED_CHANNEL_ID = "600000000000000001"
 const AUDIT_REASON = "Reviewed support channel creation"
 const OPERATION_KEY = "channel-create-operation-0001"
 const NOW = "2026-08-20T00:00:00.000Z"
+
+test("logical channel name keys collapse separators and trim their boundaries", () => {
+  assert.equal(logicalChannelNameKey(" _Customer---Help_ "), "customer-help")
+  assert.equal(logicalChannelNameKey("---"), "")
+  assert.equal(logicalChannelNameKey("Customer-Help"), "customer-help")
+  assert.equal(
+    logicalChannelNameKey(`alpha${"-".repeat(100_000)}omega`),
+    "alpha-omega",
+  )
+})
 
 function role(
   id: string,
