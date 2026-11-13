@@ -336,11 +336,13 @@ export function normalizeChannelCreationRequest(
 }
 
 export function logicalChannelNameKey(value: string): string {
-  return value
+  let key = value
     .normalize("NFKC")
     .toLocaleLowerCase("en-US")
     .replace(/[\s_-]+/gu, "-")
-    .replace(/^-+|-+$/gu, "")
+  if (key.startsWith("-")) key = key.slice(1)
+  if (key.endsWith("-")) key = key.slice(0, -1)
+  return key
 }
 
 function targetLockKey(request: NormalizedChannelCreationRequest): string {
