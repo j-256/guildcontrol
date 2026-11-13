@@ -128,5 +128,14 @@
       "Retain unfamiliar guild channel types as exact topology without granting them unsupported operations.",
       "Allow reviewed single and bulk member-role changes, invite role grants, and role deletion with signed partial channel analysis while retaining required authorization, known-risk checks, and discovered dependency blockers."
     ]
+  },
+  "2.3.9": {
+    "version": "2.3.9",
+    "paragraphs": [
+      "GuildControl 2.3.9 keeps channel name matching behavior while removing a regular-expression path that could do excessive work on long names."
+    ],
+    "highlights": [
+      "Channel creation and scaffold matching normalize separator-heavy names with direct boundary checks."
+    ]
   }
 }
