@@ -303,11 +303,11 @@ const EXPECTED_ACTION_PINS = new Map([
   ["actions/setup-node", "949feb2413d6458794dcd2491c4babbbce0c15c1"],
   ["actions/upload-artifact", "cf430e030ddbb5b0abf93d22962f4752f3646cd9"],
   ["docker/build-push-action", "c3c9e263c25d99ce0380d002d59b67737d91b0dc"],
-  ["docker/login-action", "81c6f93d4bc991e510b342a00b419b3bb4efc5c6"],
+  ["docker/login-action", "8aa5831fb8d48d8f76594c7ddde61ae58019f550"],
   ["docker/setup-buildx-action", "f87e5991a6d7451dcb8d9637bfbc97413f497069"],
   ["docker/setup-qemu-action", "99012661954931238ded8c8b007157a8430204e1"],
-  ["github/codeql-action/analyze", "9b3254085494b55a0f7c4c2b3d2d52cc712ce370"],
-  ["github/codeql-action/init", "9b3254085494b55a0f7c4c2b3d2d52cc712ce370"],
+  ["github/codeql-action/analyze", "33d7b85da1a04171e211befe2c739303b9a4c066"],
+  ["github/codeql-action/init", "33d7b85da1a04171e211befe2c739303b9a4c066"],
 ])
 
 function assertEqual(actual, expected, message) {
