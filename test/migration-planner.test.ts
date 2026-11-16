@@ -33,6 +33,14 @@ const PUBLISHED_SOURCE_IDS = [
   "targeted-reader@1.0.0",
   "willuhm@1.1.1",
 ]
+const AUDITED_SOURCE_IDS = [
+  "cappyeo@0.34.1",
+  "orygn@2.0.0",
+  "pasympa@2.4.0",
+  "pr5ias@1.1.1",
+  "qungtai@0.2.0",
+  "thestreamcode@0.2.0",
+]
 
 test("migration catalog is deterministic, immutable, and accounts for every audited source tool", () => {
   const first = createMigrationCatalog()
@@ -43,7 +51,7 @@ test("migration catalog is deterministic, immutable, and accounts for every audi
   assert.match(first.catalogDigest, MIGRATION_DIGEST_PATTERN)
   assert.deepEqual(first.sources.map(({ id }) => id), [...MIGRATION_SOURCE_IDS])
   assert.equal(new Set(first.sources.map(({ manifestDigest }) => manifestDigest)).size, first.sources.length)
-  assert.deepEqual(first.sources.map(({ id }) => id), PUBLISHED_SOURCE_IDS)
+  for (const id of PUBLISHED_SOURCE_IDS) assert.ok(first.sources.some((source) => source.id === id), id)
   assert.equal(Object.isFrozen(first), true)
 
   for (const [index, source] of first.sources.entries()) {
@@ -73,6 +81,48 @@ test("migration catalog is deterministic, immutable, and accounts for every audi
     sourceInspected: false,
     sourceOrHostChanged: false,
   })
+})
+
+test("audited comparable releases are selectable with complete source-bound migration accounting", async () => {
+  const targetCatalog = await checkDiscordCatalog()
+  for (const id of AUDITED_SOURCE_IDS) {
+    const plan = await createMigrationPlan(id, { checkCatalog: async () => targetCatalog })
+    assert.equal(plan.source.id, id)
+    assert.equal(plan.source.auditFidelity, "tagged-source")
+    assert.ok(plan.source.sourceToolCount > 0)
+    assert.equal(plan.mappings.flatMap((mapping) => mapping.sourceTools).length, plan.source.sourceToolCount)
+    assert.equal(verifyMigrationPlan(plan), true)
+  }
+})
+
+test("migration preserves unsupported executor, authority, and Discord resource boundaries", async () => {
+  const targetCatalog = await checkDiscordCatalog()
+  const unsupported = new Map([
+    ["cappyeo@0.34.1", ["events_dm_reply", "events_message_context", "workflow_start", "mcp_pipeline", "guild_change_restore", "application_modify_current", "commands_bulk_overwrite_global", "commands_bulk_overwrite_guild", "commands_edit_command_permissions"]],
+    ["pasympa@2.4.0", ["discord_get_membership_screening", "discord_update_membership_screening", "discord_send_dm_embed", "discord_edit_dm_embed", "discord_delete_forum_post"]],
+    ["pasympa@2.2.0", ["discord_get_membership_screening", "discord_update_membership_screening"]],
+    ["orygn@2.0.0", ["execute_build_plan", "undo_change", "schedule_message", "delete_thread", "delete_forum_post"]],
+    ["qungtai@0.2.0", ["discord_set_invite_target_users", "discord_create_guild_scheduled_event_exception", "discord_review_guild_join_request"]],
+    ["pr5ias@1.1.1", ["discord_api"]],
+    ["thestreamcode@0.2.0", ["discord_backup_restore_apply"]],
+  ])
+  for (const [id, sourceNames] of unsupported) {
+    const plan = await createMigrationPlan(id, { checkCatalog: async () => targetCatalog })
+    for (const name of sourceNames) {
+      const mapping = plan.mappings.find((mapping) => mapping.sourceTools.includes(name))
+      assert.ok(mapping, `${id}: ${name}`)
+      assert.equal(mapping.disposition, "intentionally-excluded", `${id}: ${name}`)
+      assert.deepEqual(mapping.targetTools, [], `${id}: ${name}`)
+      assert.deepEqual(mapping.recipes, [], `${id}: ${name}`)
+    }
+  }
+  for (const [id, name] of [["cappyeo@0.34.1", "channels_delete"], ["qungtai@0.2.0", "discord_delete_channel"]]) {
+    const plan = await createMigrationPlan(id as string, { checkCatalog: async () => targetCatalog })
+    const mapping = plan.mappings.find((mapping) => mapping.sourceTools.includes(name as string))
+    assert.ok(mapping)
+    assert.match(mapping.instruction, /retirement supports only exact direct guild/u)
+    assert.match(mapping.instruction, /thread or DM has no equivalent/u)
+  }
 })
 
 test("migration sources cover the scored local competitor release table", async () => {

@@ -24,12 +24,19 @@ The catalog contains these immutable source IDs:
 | `cappyeo@0.27.1` | Public version tag resolved to a commit-pinned source snapshot | `channel-reader` |
 | `cappyeo@0.31.1` | Public version tag resolved to a commit-pinned source snapshot | `channel-reader` |
 | `cappyeo@0.32.0` | Public version tag resolved to a commit-pinned source snapshot | `channel-reader` |
+| `cappyeo@0.32.1` | Public version tag resolved to a commit-pinned source snapshot | `channel-reader` |
+| `cappyeo@0.34.1` | Exact tagged source, including conditional discovery, architecture alias, and optional Event tools | `channel-reader` |
 | `hypark@0.1.1` | Public version tag resolved to a commit-pinned source snapshot | `channel-reader` |
 | `jaimen-bell@0.1.1` | Exact PyPI release and matching commit-pinned public source without a source tag | `server-observer` |
 | `oratorian@1.1.4` | Public version tag resolved to a commit-pinned source snapshot | `channel-reader` |
+| `orygn@2.0.0` | Exact tagged source with complete selected-toolset registration accounting | `channel-reader` |
 | `pasympa@2.1.1` | Public version tag resolved to a commit-pinned source snapshot | `channel-reader` |
 | `pasympa@2.2.0` | Public version tag resolved to a commit-pinned source snapshot | `channel-reader` |
+| `pasympa@2.4.0` | Exact tagged source covering full, selected-toolset, and read-only registration | `channel-reader` |
+| `pr5ias@1.1.1` | Exact `1.1.1` tag matches npm source and published files; includes dynamic-pack and raw dispatch tools | `channel-reader` |
+| `qungtai@0.2.0` | Exact tagged source with complete recursively loaded operation descriptors | `channel-reader` |
 | `targeted-reader@1.0.0` | Version-matching commit-pinned public source without a source tag or installable Registry package | `channel-reader` |
+| `thestreamcode@0.2.0` | Exact tagged runtime source; runtime equivalence to the distinct npm publishing source was checked | `channel-reader` |
 | `willuhm@1.1.1` | Public version tag resolved to a commit-pinned source snapshot | `channel-reader` |
 
 This table describes the catalog built from this source revision. The [field comparison](comparison.md) scores the latest audited release of each competitor, while older rows here preserve release-exact planning for source versions offered by published GuildControl releases. An installed package may have a different catalog; use its `migrate list` output to select a supported ID.
@@ -41,7 +48,7 @@ Each entry includes its Registry identity, commit-pinned evidence URL, audit fid
 Choose the source ID shown by `migrate list`:
 
 ```bash
-guildctl migrate plan cappyeo@0.32.0
+guildctl migrate plan cappyeo@0.34.1
 ```
 
 The terminal report accounts for every audited source tool exactly once. Each outcome group includes:
@@ -58,7 +65,7 @@ The report also binds the source manifest and complete inventory to the negotiat
 Add `--json` for deterministic machine-readable evidence:
 
 ```bash
-guildctl migrate plan cappyeo@0.32.0 --json
+guildctl migrate plan cappyeo@0.34.1 --json
 ```
 
 JSON is suitable for review automation, but it is not a generated policy. `configurationImported`, `argumentsTranslated`, and `hostSettingsChanged` remain `false`.
@@ -68,7 +75,7 @@ JSON is suitable for review automation, but it is not a generated policy. `confi
 Add `--html FILE` to create a standalone guide without replacing an existing file:
 
 ```bash
-guildctl migrate plan cappyeo@0.32.0 --html ./cappyeo-migration.html
+guildctl migrate plan cappyeo@0.34.1 --html ./cappyeo-migration.html
 ```
 
 The file is created exclusively with mode `0600`. It contains the exact plan, source and target evidence, searchable outcome cards, disposition filters, tool-level accounting, copyable commands, visible limitations, and an in-memory checklist. It loads no external asset, makes no automatic request, persists no browser state, and embeds neither the output path nor a credential value. Activating a source or Registry evidence link is an explicit browser navigation.
@@ -87,7 +94,29 @@ Cappyeo 0.32.0's `members_bulk_add_role` maps to the separately scoped `plan_bul
 
 Cappyeo's `channels_modify` with `lock_permissions: true` can move a child and copy the destination category's overwrites in one PATCH. GuildControl maps an existing child's synchronization to `plan_channel_permission_sync` and `execute_channel_permission_sync` after complete review. A move to another category first needs the separate reviewed channel-placement workflow, followed by a fresh synchronization plan for the new live parent. Inspect the intermediate access state and do not treat the two reviewed changes as one atomic source operation.
 
-`intentionally-excluded` means no connector equivalent is offered. For example, connector-owned AI calls and unrelated third-party emoji search stay outside this model-neutral Discord boundary. Keep reasoning in the MCP host or selected model provider and send only the deliberate Discord operation to the connector.
+`intentionally-excluded` means no complete connector equivalent is offered. Connector-owned AI calls, arbitrary API dispatch, background automations, content archives, generic workflow execution, and automatic restore stay outside this boundary. A nearby manual route is not an equivalent executor. Keep a separately chosen source service if an excluded outcome is required; do not silently drop it when switching.
+
+## Release-specific differences
+
+The [completed comparable-release audits](comparison.md#current-comparable-release-audits) record both useful source capabilities and the limits of replacement. Exact source names, supported target routes, unsupported fields, and trust changes appear in each generated plan. `review-required` may cover a deliberately narrower reauthored payload; inspect its instructions before treating a grouped source tool as fully replaceable.
+
+For Cappyeo 0.34.1, the inventory includes progressive wrappers, the architecture alias, and optional Event tools, not only the canonical catalog. Older published source IDs remain available with their earlier inventory scope; use the new audited ID for the complete conditional union. Progressive wrappers become outcome discovery followed by canonical typed calls. The architecture entry point requires a newly authored supported blueprint and grants no model generation or execution authority. Generic workflows, existing-guild convergence and selective restore, durable Event delivery and accepted-event-bound replies have no complete target equivalent. Host-side tool sequences and separately reviewed message or DM workflows do not port their durable execution state or delivery guarantees.
+
+Cappyeo's application-object settings are distinct from global bot-user profile changes. Whole-registry command overwrite and caller-OAuth command-permission writes remain excluded. Native response/follow-up creation has a private bounded target route; source reusable-token response-message reads, edits, and deletes do not. Public widgets, global premium sticker packs, Stage suppression/request-to-speak state, standalone DM channel opening, arbitrary user lookup, thread-member enumeration, and arbitrary typing signals also have no matching target lifecycle. Supported entitlement consumption and test-entitlement changes use their own reviewed application-bound routes.
+
+For PaSympa 2.4.0, combined active/archive thread discovery becomes separate bounded target reads with explicit coverage and caller state. Membership-screening form terms and descriptions are a different Discord resource from Community onboarding and an individual member's verification bypass. The screening tools remain excluded, including in the corrected historical mappings. Classic embed DMs and forum-post thread deletion also lack equivalent target lifecycles; text, Components V2, private-file DMs, and thread archive/lock are distinct alternatives. An event-associated invite is not reproduced merely by creating an ordinary invite.
+
+For OrygnsCode 2.0.0, mixed build execution, structural undo, scheduling, stored blueprint management, runtime subscription changes, and fuzzy cross-resource name resolution are not imported. A caller-retained structural capture is only the supported subset of source blueprint export. Source default per-server bot-profile edits must not become global profile changes: the self nickname has an exact member route, while per-guild avatar/banner/bio and image restoration are not supported. Source global username/avatar/banner edits require the separate global acknowledgement. Member-role filters must be replaced with an independently enumerated finite exact-ID set and reviewed batches; their automatic filtered executor is not preserved. Thread and voice occupant enumeration and thread/post retirement are also excluded.
+
+For qungtai 0.2.0, existing-invite target-user administration and processing jobs, recurring-event occurrence exceptions, join-request review, account connections, arbitrary public-only resources, standalone DM creation, thread-member enumeration, and persisted attachment downloads are excluded. GuildControl separately supports a new finite private-file invite with exact-user acceptance and verified target-user processing, plus recurring scheduled-event series changes. Transient native attachment inspection returns no saved-file path. Source bulk guild-role updates mean role positioning, not member-role grants. Verification-bypass changes use their own reviewed lifecycle; whole-role-set replacement and unsupported member flags are not copied.
+
+For TheStreamCode 0.2.0, ordinary structural and administration operations have reviewed routes, but persistent snapshots, stored diffs, automatic pre-restore backups, cross-guild restore, and optional restore deletion are not imported. Caller-retained capture and additive reconstruction do not preserve that recovery system or its data. The tagged runtime matches the npm publication source, while publishing metadata and workflow differ; the audit does not attribute the tag's workflow to the published package.
+
+For pr5ias 1.1.1, source packs and nested discovery become canonical target discovery and explicit calls. The raw API dispatcher, automatic template importer/builder, persistent role-menu/ticket/welcome/rule/staff-command runtime, generic jobs, filtered background role jobs, content backups and replay, feedback reports, multi-bot credential routing, in-band authority changes, and guild creation are excluded. A manually authored blueprint or smaller reviewed role batch is an adjacent alternative. Source rich compound send/pin/crosspost/repost is not reproduced atomically by separate target operations. Remote embed media and identity overrides must not enter the target's plain or static message contracts.
+
+Across these releases, new standalone target channel creation supports categories, text channels, and forum channels. Source creation of voice, Stage, announcement, or media channels and atomic create-with-overwrites/private/position requests are not reproduced; cloning an existing channel is a different operation. Do not create an exposed intermediate channel and assume a later permission write makes the source private-creation request equivalent. Separate guild profile, settings, Community, onboarding, voice, forum, and template resources retain their own lifecycles. Unsupported guild media, locale, arbitrary feature toggles, Community disablement, forum applied-tag/pin edits, raw webhook payloads, and compound multi-field writes are not silently imported.
+
+Target direct-channel retirement covers exact guild categories, forums, media, Stage, text, and voice channels. A generic source delete-channel tool does not gain a thread or DM deletion route through that mapping. Forum-post deletion and thread-member enumeration remain distinct unsupported outcomes.
 
 ## Follow the staged path
 

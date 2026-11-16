@@ -15,6 +15,7 @@ import {
   sha256,
 } from "./release-lib.mjs"
 import { containsSpecificReference } from "./neutrality.mjs"
+import { assertComparisonMatrix } from "../site/scripts/comparison-registry.mjs"
 import {
   DOCUMENTATION_CONTENT_PATHS,
   DOCUMENTATION_MANIFEST_FORMAT,
@@ -148,6 +149,7 @@ const EXPECTED_SITE_PRERELEASE_DEPENDENCIES = {
 }
 const LEGACY_IDENTITY_EXCEPTIONS = new Set([
   "docs/comparison.md",
+  "src/migration-audited-releases.ts",
   "src/migration-manifests.ts",
 ])
 const LEGACY_IDENTITY_PATTERN = /discord[-_]?mcp/iu
@@ -803,7 +805,7 @@ async function checkDocumentation(packageJson) {
     "## How to read the matrix",
     "## Head-to-head matrix",
     "## Narrower competitor leads and product gaps",
-    "## Why each lead is material",
+    "## Evidence for the aggregate outcomes",
     "## Soundboard playback head-to-head",
     "## Bot-installation drift head-to-head",
     "## Host configuration drift head-to-head",
@@ -820,26 +822,7 @@ async function checkDocumentation(packageJson) {
   ]) {
     invariant(comparison.includes(required), `field comparison is missing ${required}`)
   }
-  const comparisonMatrix = comparison
-    .split("## Head-to-head matrix\n", 2)[1]
-    ?.split("\n## Narrower competitor leads and product gaps", 1)[0]
-  invariant(comparisonMatrix !== undefined, "field comparison matrix cannot be parsed")
-  const comparisonRows = comparisonMatrix
-    .split("\n")
-    .filter((line) => line.startsWith("| "))
-  invariant(comparisonRows.length > 2, "field comparison has no scored outcomes")
-  invariant(
-    comparisonRows[0]?.startsWith("| Aggregate operator outcome | GuildControl MCP |"),
-    "field comparison has an invalid header",
-  )
-  invariant(
-    /^\|(?: --- \|)+$/u.test(comparisonRows[1] ?? ""),
-    "field comparison has an invalid separator",
-  )
-  invariant(
-    comparisonRows.slice(2).every((row) => row.split("|")[2]?.trim() === "**Lead**"),
-    "field comparison contains an outcome GuildControl MCP does not lead",
-  )
+  assertComparisonMatrix(comparison)
   const comparisonLines = comparison.split("\n")
   const sourceHeadSectionStart = comparisonLines.indexOf(
     "## Broader unregistered field scan",
@@ -878,6 +861,7 @@ async function checkDocumentation(packageJson) {
       const line = comparisonLines[rowIndex]
       if (!line?.startsWith("| ")) break
       const cells = line.split("|").slice(1, -1).map((cell) => cell.trim())
+      invariant(cells.length === header.length, `field comparison table ${header[0]} has incomplete columns`)
       const outcome = cells[0] ?? ""
       const guildControlLeads = cells[1]?.startsWith("**Lead") ?? false
       const competitorLeads = cells.slice(2).some((cell) => cell.startsWith("**Lead"))
@@ -888,11 +872,6 @@ async function checkDocumentation(packageJson) {
           `field comparison table ${header[0]} does not preserve declared competitor lead ${outcome}`,
         )
         missingNarrowCompetitorLeadOutcomes.delete(outcome)
-      } else {
-        invariant(
-          guildControlLeads,
-          `field comparison table ${header[0]} contains an undeclared row GuildControl MCP does not lead`,
-        )
       }
       scoredRows += 1
     }
@@ -914,7 +893,7 @@ async function checkDocumentation(packageJson) {
   for (const required of [
     "## Supported source releases",
     "guildctl migrate list",
-    "guildctl migrate plan cappyeo@0.32.0",
+    "guildctl migrate plan cappyeo@0.34.1",
     "## Read the dispositions correctly",
     "## Follow the staged path",
     "## Configuration remains a clean break",

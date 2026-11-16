@@ -2,6 +2,7 @@ import assert from "node:assert/strict"
 import test from "node:test"
 
 import {
+  assertComparisonMatrix,
   assertComparisonRegistryCoverage,
   collectCurrentRegistryCompetitors,
   comparisonExternalLinks,
@@ -18,6 +19,49 @@ const COMPETITOR_ONE = "io.github.example/discord-one"
 const COMPETITOR_TWO = "ai.smithery/discord-two"
 const VERSION_ONE = "1.2.3"
 const VERSION_TWO = "2.0.0-beta.1"
+
+function comparisonMatrix(rows) {
+  return [
+    "## Head-to-head matrix",
+    "",
+    "| Aggregate operator outcome | GuildControl MCP | Peer 1.0.0 |",
+    "| --- | --- | --- |",
+    ...rows,
+    "",
+    "## Narrower competitor leads and product gaps",
+  ].join("\n")
+}
+
+test("comparison scoring permits competitor leads and shared coverage without prescribing a winner", () => {
+  const markdown = comparisonMatrix([
+    "| Durable background delivery | Partial | **Lead** |",
+    "| Scoped reads | Covered | Covered |",
+    "| Reviewed exact changes | **Lead** | Partial |",
+  ])
+  assert.doesNotThrow(() => assertComparisonMatrix(markdown))
+})
+
+test("comparison scoring rejects incomplete, duplicate, and unknown classifications", () => {
+  assert.throws(
+    () => assertComparisonMatrix(comparisonMatrix(["| Reads | Covered |"])),
+    /column/u,
+  )
+  assert.throws(
+    () => assertComparisonMatrix(comparisonMatrix([
+      "| Reads | Covered | Partial |",
+      "| Reads | **Lead** | Partial |",
+    ])),
+    /duplicate outcome/u,
+  )
+  assert.throws(
+    () => assertComparisonMatrix(comparisonMatrix(["| Reads | Best | Partial |"])),
+    /classification/u,
+  )
+  assert.throws(
+    () => assertComparisonMatrix(comparisonMatrix(["| Reads | Covered | |"])),
+    /classification/u,
+  )
+})
 
 function registryEntry(name, version) {
   return {
