@@ -1,6 +1,7 @@
 import type { ConfigRecipeName } from "./config-recipes.js"
 import type { McpToolName } from "./observability-catalog.js"
 import type { SetupPresetName } from "./setup-presets.js"
+import { AUDITED_MIGRATION_SOURCE_DEFINITIONS } from "./migration-audited-releases.js"
 
 export const MIGRATION_SOURCE_IDS = Object.freeze([
   "cappyeo@0.25.0",
@@ -9,12 +10,18 @@ export const MIGRATION_SOURCE_IDS = Object.freeze([
   "cappyeo@0.31.1",
   "cappyeo@0.32.0",
   "cappyeo@0.32.1",
+  "cappyeo@0.34.1",
   "hypark@0.1.1",
   "jaimen-bell@0.1.1",
   "oratorian@1.1.4",
+  "orygn@2.0.0",
   "pasympa@2.1.1",
   "pasympa@2.2.0",
+  "pasympa@2.4.0",
+  "pr5ias@1.1.1",
+  "qungtai@0.2.0",
   "targeted-reader@1.0.0",
+  "thestreamcode@0.2.0",
   "willuhm@1.1.1",
 ] as const)
 
@@ -1159,9 +1166,19 @@ const PASYMPA_GROUPS = Object.freeze([
     instruction: "Use the direct-messenger recipe and exact user allowlist, then review each send, edit, reply, or deletion outcome.",
     outcome: "Direct-message reads and writes",
     recipes: ["direct-messenger"],
-    sourceNames: ["discord_delete_dm", "discord_edit_dm", "discord_edit_dm_embed", "discord_read_dms", "discord_reply_dm", "discord_send_dm", "discord_send_dm_embed"],
+    sourceNames: ["discord_delete_dm", "discord_edit_dm", "discord_read_dms", "discord_reply_dm", "discord_send_dm"],
     targetTools: ["list_direct_messages", "get_direct_message", "plan_direct_message_change", "execute_direct_message_change", "verify_direct_message_change"],
     trustChange: "DM access becomes exact-user scoped and every mutation is reviewed and verified.",
+  },
+  {
+    disposition: "intentionally-excluded",
+    id: "direct-message-embeds",
+    instruction: "Keep classic embed DM creation and editing outside this migration. A newly authored text or Components V2 body changes the source payload.",
+    outcome: "Direct-message embed creation and editing",
+    recipes: [],
+    sourceNames: ["discord_edit_dm_embed", "discord_send_dm_embed"],
+    targetTools: [],
+    trustChange: "The target has no classic embed DM body or embed DM editing lifecycle.",
   },
   {
     disposition: "review-required",
@@ -1169,9 +1186,19 @@ const PASYMPA_GROUPS = Object.freeze([
     instruction: "Inspect exact forum channels, posts, threads, and tags, then select the reviewed forum-post or tag workflow.",
     outcome: "Forum channels, posts, threads, replies, and tags",
     recipes: [],
-    sourceNames: ["discord_create_forum_channel", "discord_create_forum_post", "discord_delete_forum_post", "discord_get_forum_channels", "discord_get_forum_post", "discord_get_forum_tags", "discord_list_forum_threads", "discord_reply_to_forum", "discord_set_forum_tags", "discord_update_forum_post"],
+    sourceNames: ["discord_create_forum_channel", "discord_create_forum_post", "discord_get_forum_channels", "discord_get_forum_post", "discord_get_forum_tags", "discord_list_forum_threads", "discord_reply_to_forum", "discord_set_forum_tags", "discord_update_forum_post"],
     targetTools: ["list_channels", "get_thread_state", "list_active_threads", "list_archived_threads", "audit_forum_tags", "plan_forum_post", "execute_forum_post", "plan_forum_tag_change", "execute_forum_tag_change"],
     trustChange: "Forum writes become exact-channel reviewed operations with tag and thread state readback.",
+  },
+  {
+    disposition: "intentionally-excluded",
+    id: "forum-post-retirement",
+    instruction: "Keep forum-post deletion separate. Thread archive or lock and direct channel retirement do not delete a forum post.",
+    outcome: "Forum-post thread deletion",
+    recipes: [],
+    sourceNames: ["discord_delete_forum_post"],
+    targetTools: [],
+    trustChange: "The target thread-governance lifecycle has no deletion action.",
   },
   {
     disposition: "review-required",
@@ -1204,14 +1231,14 @@ const PASYMPA_GROUPS = Object.freeze([
     trustChange: "Reusable webhook credentials remain private and mutations gain exact scope, coordination, and readback.",
   },
   {
-    disposition: "review-required",
+    disposition: "intentionally-excluded",
     id: "membership-screening",
-    instruction: "Inspect onboarding state and use the reviewed member-verification or onboarding workflow for the intended change.",
+    instruction: "Keep membership-screening form terms and descriptions outside this migration. Community onboarding and an individual member verification bypass operate on different Discord resources.",
     outcome: "Membership screening inspection and changes",
     recipes: [],
     sourceNames: ["discord_get_membership_screening", "discord_update_membership_screening"],
-    targetTools: ["get_guild_onboarding", "plan_member_verification_change", "execute_member_verification_change", "plan_onboarding_change", "execute_onboarding_change"],
-    trustChange: "Screening changes become exact-guild reviewed operations with complete state evidence.",
+    targetTools: [],
+    trustChange: "No complete target membership-screening form inspection or replacement lifecycle is offered.",
   },
 ] as const satisfies readonly MigrationGroupDefinition[])
 
@@ -1405,7 +1432,7 @@ const TARGETED_READER_GROUPS = Object.freeze([
   },
 ] as const satisfies readonly MigrationGroupDefinition[])
 
-export const MIGRATION_SOURCE_DEFINITIONS = Object.freeze([
+const HISTORICAL_MIGRATION_SOURCE_DEFINITIONS = Object.freeze([
   {
     auditFidelity: "tagged-source",
     auditedInventoryDigest: "sha256:dab2107a16da8e9738281c2db287a13dadfff5d82abe8e796cd7bd8b9f166a92",
@@ -1589,3 +1616,8 @@ export const MIGRATION_SOURCE_DEFINITIONS = Object.freeze([
     version: "1.1.1",
   },
 ] as const satisfies readonly MigrationSourceDefinition[])
+
+export const MIGRATION_SOURCE_DEFINITIONS: readonly MigrationSourceDefinition[] = Object.freeze([
+  ...HISTORICAL_MIGRATION_SOURCE_DEFINITIONS,
+  ...AUDITED_MIGRATION_SOURCE_DEFINITIONS,
+].sort((left, right) => left.id.localeCompare(right.id)))

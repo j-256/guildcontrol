@@ -18,6 +18,34 @@ const MAXIMUM_CURSOR_CHARACTERS = 2_048
 const MAXIMUM_SERVER_NAME_CHARACTERS = 200
 const MAXIMUM_VERSION_CHARACTERS = 255
 const REGISTRY_SERVER_NAME = /^[A-Za-z0-9.-]+\/[A-Za-z0-9._-]+$/u
+const COMPARISON_CLASSIFICATIONS = new Set([
+  "Lead", "Covered", "Partial", "Not demonstrated", "Different fit", "Not auditable",
+])
+
+export function assertComparisonMatrix(markdown) {
+  const matrix = markdown.split("## Head-to-head matrix\n", 2)[1]
+    ?.split("\n## Narrower competitor leads and product gaps", 1)[0]
+  assert.ok(matrix, "Comparison matrix is missing")
+  const rows = matrix.split("\n").filter((line) => line.startsWith("| "))
+    .map((line) => line.split("|").slice(1, -1).map((cell) => cell.trim()))
+  const header = rows[0]
+  assert.ok(header?.length >= 3, "Comparison matrix lacks competitor columns")
+  assert.equal(header[0], "Aggregate operator outcome", "Comparison matrix outcome header is invalid")
+  assert.equal(header[1], "GuildControl MCP", "Comparison matrix project header is invalid")
+  assert.equal(new Set(header).size, header.length, "Comparison matrix contains duplicate columns")
+  assert.ok(rows.length > 2, "Comparison matrix has no scored outcomes")
+  assert.ok(rows[1].length === header.length && rows[1].every((cell) => cell === "---"), "Comparison matrix separator columns are invalid")
+  const outcomes = new Set()
+  for (const row of rows.slice(2)) {
+    assert.equal(row.length, header.length, "Comparison matrix row has incomplete columns")
+    assert.ok(row[0], "Comparison matrix outcome is empty")
+    assert.ok(!outcomes.has(row[0]), "Comparison matrix contains a duplicate outcome")
+    outcomes.add(row[0])
+    for (const cell of row.slice(1)) {
+      assert.ok(COMPARISON_CLASSIFICATIONS.has(cell.replaceAll("**", "")), `Comparison matrix classification is invalid: ${cell}`)
+    }
+  }
+}
 
 function strictRecord(value, description) {
   assert.ok(value && typeof value === "object" && !Array.isArray(value), description)
