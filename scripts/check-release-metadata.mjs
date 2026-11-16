@@ -115,7 +115,7 @@ const EXPECTED_SITE_DEV_DEPENDENCIES = {
   "@astrojs/markdown-remark": "7.3.4",
   "@astrojs/starlight": "0.41.9",
   "@axe-core/playwright": "4.13.0",
-  astro: "7.4.2",
+  astro: "7.4.12",
   playwright: "1.62.1",
   typescript: "6.0.3",
   wrangler: "4.155.0",
@@ -139,6 +139,8 @@ const EXPECTED_SITE_SCRIPTS = {
   verify: "npm run check && npm run build && npm test && npm run test:browser",
 }
 const EXPECTED_SITE_PRERELEASE_DEPENDENCIES = {
+  "node_modules/@rolldown/binding-wasm32-wasi/node_modules/@emnapi/core": "2.0.0-beta.2",
+  "node_modules/@rolldown/binding-wasm32-wasi/node_modules/@emnapi/runtime": "2.0.0-beta.2",
   "node_modules/get-tsconfig": "5.0.0-beta.6",
   "node_modules/miniflare": "5.20261023.2-beta",
   "node_modules/unenv": "2.0.0-rc.24",
