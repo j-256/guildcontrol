@@ -84,7 +84,7 @@
     "@opentelemetry/context-async-hooks": "3.0.0",
     "@opentelemetry/exporter-metrics-otlp-proto": "0.300.0",
     "@opentelemetry/exporter-trace-otlp-proto": "0.300.0",
-    "@opentelemetry/otlp-exporter-base": "0.300.0",
+    "@opentelemetry/otlp-exporter-base": "0.301.1",
     "@opentelemetry/resources": "3.0.0",
     "@opentelemetry/sdk-metrics": "3.0.0",
     "@opentelemetry/sdk-trace": "3.0.0",
