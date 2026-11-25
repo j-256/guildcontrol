@@ -137,5 +137,16 @@
     "highlights": [
       "Channel creation and scaffold matching normalize separator-heavy names with direct boundary checks."
     ]
+  },
+  "2.3.10": {
+    "version": "2.3.10",
+    "paragraphs": [
+      "GuildControl refreshes its OpenTelemetry dependencies and completes release-scoped comparison and migration evidence while preserving reviewed administration and privacy boundaries."
+    ],
+    "highlights": [
+      "Keep tracing and metrics dependencies aligned with the verified release metadata.",
+      "Expand exact-release migration inventories with explicit unsupported outcomes.",
+      "Clarify competitor comparisons and verify the comparison data included in the package."
+    ]
   }
 }
