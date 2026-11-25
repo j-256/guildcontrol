@@ -3,6 +3,9 @@ updates:
   - package-ecosystem: npm
     directory: /
     groups:
+      opentelemetry:
+        patterns:
+          - "@opentelemetry/*"
       mcp-sdk:
         patterns:
           - "@modelcontextprotocol/*"
