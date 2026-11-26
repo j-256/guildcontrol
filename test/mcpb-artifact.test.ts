@@ -1,6 +1,7 @@
 import assert from "node:assert/strict"
 import { readFile } from "node:fs/promises"
 import test from "node:test"
+import { spawnSync } from "node:child_process"
 
 import {
   MCPB_ARCHIVE_ENTRIES,
@@ -70,4 +71,16 @@ test("MCPB archive allowlist is canonical and content-bearing", () => {
   assert.ok(MCPB_ARCHIVE_ENTRIES.includes("docs/safety-usability.md"))
   assert.ok(MCPB_ARCHIVE_ENTRIES.includes("README.md"))
   assert.equal(MCPB_ARCHIVE_ENTRIES.some((name) => name.endsWith("/")), false)
+})
+
+test("MCPB candidate verification rejects release preparation and missing evidence", () => {
+  for (const [args, message] of [
+    [["--verify-candidate"], "Candidate verification requires catalog evidence and an output directory"],
+    [["--verify-candidate", "--allow-registry-mismatch"], "Candidate verification and release preparation are separate modes"],
+  ] as const) {
+    const result = spawnSync(process.execPath, ["scripts/build-mcpb.mjs", ...args], { encoding: "utf8" })
+    assert.notEqual(result.status, 0)
+    assert.ok(result.stderr.includes(message))
+    assert.equal(result.stdout, "")
+  }
 })

@@ -85,7 +85,7 @@ jobs:
           set -eu
           mkdir -p "$RUNNER_TEMP/package"
           npm run pack:verify -- --output "$RUNNER_TEMP/package"
-          node scripts/build-mcpb.mjs \
+          node scripts/build-mcpb.mjs --verify-candidate \
             --catalog-evidence "$RUNNER_TEMP/package/catalog-evidence.json" \
             --output "$RUNNER_TEMP/package"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

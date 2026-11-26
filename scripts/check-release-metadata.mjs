@@ -94,9 +94,9 @@ const EXPECTED_DEPENDENCIES = {
   "@modelcontextprotocol/server": "2.4.0",
   "@opentelemetry/api": "1.10.0",
   "@opentelemetry/context-async-hooks": "3.1.1",
-  "@opentelemetry/exporter-metrics-otlp-proto": "0.301.1",
-  "@opentelemetry/exporter-trace-otlp-proto": "0.301.1",
-  "@opentelemetry/otlp-exporter-base": "0.301.1",
+  "@opentelemetry/exporter-metrics-otlp-proto": "0.301.2",
+  "@opentelemetry/exporter-trace-otlp-proto": "0.301.2",
+  "@opentelemetry/otlp-exporter-base": "0.301.2",
   "@opentelemetry/resources": "3.1.1",
   "@opentelemetry/sdk-metrics": "3.1.1",
   "@opentelemetry/sdk-trace": "3.1.1",
@@ -1450,6 +1450,8 @@ async function checkAutomation(packageJson) {
   invariant(!githubReleaseHelper.includes("/immutable-releases"), "GitHub Release automation must not require unavailable repository administration authority")
   invariant(mcpbBuilder.includes("MCPB artifact digest differs from server.json"), "MCPB builder must bind output to Registry metadata")
   invariant(mcpbBuilder.includes("--allow-registry-mismatch"), "MCPB builder lacks the explicit release-preparation escape hatch")
+  invariant(ci.includes("node scripts/build-mcpb.mjs --verify-candidate"), "CI must verify candidate MCPB bytes independently of the published release digest")
+  invariant(!release.includes("--verify-candidate"), "Release workflow must retain strict Registry digest binding")
   for (const migrationBoundary of [
     'fromName: "io.github.j-256/guildcontrol"',
     'fromVersion: "0.3.0"',

@@ -388,6 +388,9 @@ The exact registry response is also available from `https://registry.modelcontex
 - Use npm unpublish only for a confirmed security emergency and after evaluating downstream breakage
 - Publish corrected MCP Registry metadata under the corrected package version; never claim mismatched metadata is equivalent
 
+Candidate CI builds verify the MCPB archive contents, dependency inventory, and MCP contract against the generated catalog evidence with `--verify-candidate`. Candidate output reports its verification mode and does not claim to match the published Registry digest. The default builder and release workflow retain the exact `server.json` digest check; `--allow-registry-mismatch` remains reserved for preparing a reviewed release digest.
+
+
 ## Platform references
 
 - [npm staged publishing](https://docs.npmjs.com/staged-publishing/)
