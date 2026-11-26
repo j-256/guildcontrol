@@ -1450,6 +1450,8 @@ async function checkAutomation(packageJson) {
   invariant(!githubReleaseHelper.includes("/immutable-releases"), "GitHub Release automation must not require unavailable repository administration authority")
   invariant(mcpbBuilder.includes("MCPB artifact digest differs from server.json"), "MCPB builder must bind output to Registry metadata")
   invariant(mcpbBuilder.includes("--allow-registry-mismatch"), "MCPB builder lacks the explicit release-preparation escape hatch")
+  invariant(ci.includes("node scripts/build-mcpb.mjs --verify-candidate"), "CI must verify candidate MCPB bytes independently of the published release digest")
+  invariant(!release.includes("--verify-candidate"), "Release workflow must retain strict Registry digest binding")
   for (const migrationBoundary of [
     'fromName: "io.github.j-256/guildcontrol"',
     'fromVersion: "0.3.0"',
